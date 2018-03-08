@@ -8,7 +8,7 @@
 
 namespace HeimrichHannot\RequestBundle\EventListener;
 
-use HeimrichHannot\RequestBundle\Request;
+use Contao\System;
 
 class InsertTagsListener
 {
@@ -51,9 +51,9 @@ class InsertTagsListener
     {
         switch ($insertTag) {
             case 'request_get':
-                return Request::getGet($key);
+                return System::getContainer()->get('huh.request.request')->getGet($key);
             case 'request_post':
-                return Request::getPost($key);
+                return System::getContainer()->get('huh.request.request')->getPost($key);
         }
 
         return '';
