@@ -329,23 +329,58 @@ class Request
      * @param bool   $blnTidy           If true, varValue is tidied up
      * @param bool   $blnStrictMode     If true, the xss cleaner removes also JavaScript event handlers
      *
-     * @return mixed If no $strKey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
+     * @return null|mixed If no $strKey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
      */
-    public function getPost($strKey = null, $blnDecodeEntities = false, $blnTidy = true, $blnStrictMode = true)
+    public function getPost($strKey, $blnDecodeEntities = false, $blnTidy = true, $blnStrictMode = true)
     {
-        if (null === $strKey) {
-            $arrValues = $this->getInstance()->request->all();
-
-            if (is_array($arrValues)) {
-                foreach ($arrValues as $key => &$varValue) {
-                    $varValue = $this->clean($varValue, $blnDecodeEntities, TL_MODE !== 'BE', $blnTidy, $blnStrictMode);
-                }
-            }
-
-            return $arrValues;
+        if (!$this->getInstance()->request->has($strKey)) {
+            return null;
         }
 
         return $this->clean($this->getInstance()->request->get($strKey), $blnDecodeEntities, TL_MODE !== 'BE', $blnTidy, $blnStrictMode);
+    }
+
+    /**
+     * Shorthand getter for request arguments ($_POST).
+     *
+     * @param string $strKey            The requested field
+     * @param bool   $blnDecodeEntities If true, all entities will be decoded
+     * @param bool   $blnTidy           If true, varValue is tidied up
+     * @param bool   $blnStrictMode     If true, the xss cleaner removes also JavaScript event handlers
+     *
+     * @return mixed If no $strKey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
+     */
+    public function getAllPost($blnDecodeEntities = false, $blnTidy = true, $blnStrictMode = true)
+    {
+        $arrValues = $this->getInstance()->request->all();
+
+        if (is_array($arrValues)) {
+            foreach ($arrValues as $key => &$varValue) {
+                $varValue = $this->clean($varValue, $blnDecodeEntities, TL_MODE !== 'BE', $blnTidy, $blnStrictMode);
+            }
+        }
+
+        return $arrValues;
+    }
+
+    /**
+     * Shorthand getter for request arguments ($_POST) preserving allowed HTML tags.
+     *
+     * @param string $strKey            The requested field
+     * @param bool   $blnDecodeEntities If true, all entities will be decoded
+     * @param string $strAllowedTags    List of allowed html tags
+     * @param bool   $blnTidy           If true, varValue is tidied up
+     * @param bool   $blnStrictMode     If true, the xss cleaner removes also JavaScript event handlers
+     *
+     * @return null|mixed If no $strKey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
+     */
+    public function getPostHtml($strKey, $blnDecodeEntities = false, $strAllowedTags = null, $blnTidy = true, $blnStrictMode = true)
+    {
+        if (!$this->getInstance()->request->has($strKey)) {
+            return null;
+        }
+
+        return $this->cleanHtml($this->getInstance()->request->get($strKey), $blnDecodeEntities, TL_MODE !== 'BE', $strAllowedTags, $blnTidy, $blnStrictMode);
     }
 
     /**
@@ -359,21 +394,35 @@ class Request
      *
      * @return mixed If no $strKey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
      */
-    public function getPostHtml($strKey = null, $blnDecodeEntities = false, $strAllowedTags = null, $blnTidy = true, $blnStrictMode = true)
+    public function getAllPostHtml($blnDecodeEntities = false, $strAllowedTags = null, $blnTidy = true, $blnStrictMode = true)
     {
-        if (null === $strKey) {
-            $arrValues = $this->getInstance()->request->all();
+        $arrValues = $this->getInstance()->request->all();
 
-            if (is_array($arrValues)) {
-                foreach ($arrValues as $key => &$varValue) {
-                    $varValue = $this->cleanHtml($varValue, $blnDecodeEntities, TL_MODE !== 'BE', $strAllowedTags, $blnTidy, $blnStrictMode);
-                }
+        if (is_array($arrValues)) {
+            foreach ($arrValues as $key => &$varValue) {
+                $varValue = $this->cleanHtml($varValue, $blnDecodeEntities, TL_MODE !== 'BE', $strAllowedTags, $blnTidy, $blnStrictMode);
             }
-
-            return $arrValues;
         }
 
-        return $this->cleanHtml($this->getInstance()->request->get($strKey), $blnDecodeEntities, TL_MODE !== 'BE', $strAllowedTags, $blnTidy, $blnStrictMode);
+        return $arrValues;
+    }
+
+    /**
+     * Shorthand getter for request arguments ($_POST), returning raw, unsafe but filtered values.
+     *
+     * @param string $strKey        The requested field
+     * @param bool   $blnTidy       If true, varValue is tidied up
+     * @param bool   $blnStrictMode If true, the xss cleaner removes also JavaScript event handlers
+     *
+     * @return null|mixed If no $strkey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
+     */
+    public function getPostRaw($strKey, $blnTidy = false, $blnStrictMode = false)
+    {
+        if (!$this->getInstance()->request->has($strKey)) {
+            return null;
+        }
+
+        return $this->cleanRaw($this->getInstance()->request->get($strKey), TL_MODE !== 'BE', $blnTidy, $blnStrictMode);
     }
 
     /**
@@ -385,21 +434,17 @@ class Request
      *
      * @return mixed If no $strkey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
      */
-    public function getPostRaw($strKey = null, $blnTidy = false, $blnStrictMode = false)
+    public function getAllPostRaw($blnTidy = false, $blnStrictMode = false)
     {
-        if (null === $strKey) {
-            $arrValues = $this->getInstance()->request->all();
+        $arrValues = $this->getInstance()->request->all();
 
-            if (is_array($arrValues)) {
-                foreach ($arrValues as $key => &$varValue) {
-                    $varValue = $this->cleanRaw($varValue, TL_MODE !== 'BE', $blnTidy, $blnStrictMode);
-                }
+        if (is_array($arrValues)) {
+            foreach ($arrValues as $key => &$varValue) {
+                $varValue = $this->cleanRaw($varValue, TL_MODE !== 'BE', $blnTidy, $blnStrictMode);
             }
-
-            return $arrValues;
         }
 
-        return $this->cleanRaw($this->getInstance()->request->get($strKey), TL_MODE !== 'BE', $blnTidy, $blnStrictMode);
+        return $arrValues;
     }
 
     /**

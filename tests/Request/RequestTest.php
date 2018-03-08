@@ -98,14 +98,42 @@ class RequestTest extends ContaoTestCase
     {
         $_POST = ['test' => ['id' => 12]];
 
-        $result = $this->request->getPost(null, true);
+        $result = $this->request->getPost('test', true);
+        $this->assertSame(['id' => '12'], $result);
+        $this->assertNull($this->request->getPost('blaFoo'));
+
+        $result = $this->request->getPostHtml('test', true);
+        $this->assertSame(['id' => '12'], $result);
+        $this->assertNull($this->request->getPostHtml('blaFoo'));
+
+        $result = $this->request->getPostRaw('test', true);
+        $this->assertSame(['id' => '12'], $result);
+        $this->assertNull($this->request->getPostRaw('blaFoo'));
+    }
+
+    public function testGetAllPost()
+    {
+        $result = $this->request->getAllPost();
         $this->assertSame(['test' => ['id' => '12']], $result);
 
-        $result = $this->request->getPostHtml(null, true);
+        $result = $this->request->getAllPostHtml();
         $this->assertSame(['test' => ['id' => '12']], $result);
 
-        $result = $this->request->getPostRaw(null, true);
+        $result = $this->request->getAllPostRaw();
         $this->assertSame(['test' => ['id' => '12']], $result);
+
+        $request = new Request($this->mockContaoFramework());
+
+        $_POST = null;
+
+        $result = $request->getAllPost();
+        $this->assertSame([], $result);
+
+        $result = $request->getAllPostHtml();
+        $this->assertSame([], $result);
+
+        $result = $request->getAllPostRaw();
+        $this->assertSame([], $result);
     }
 
     public function testXssClean()
