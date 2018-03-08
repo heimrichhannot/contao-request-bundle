@@ -1,0 +1,11 @@
+services:
+  huh.request.insertTagsListener:
+    class: HeimrichHannot\RequestBundle\EventListener\InsertTagsListener
+    public: true
+    arguments:
+      - '@contao.framework'
+  huh.request.request:
+    class: HeimrichHannot\RequestBundle\Request
+    public: true
+    arguments:
+      - '@contao.framework'
