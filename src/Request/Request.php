@@ -334,7 +334,7 @@ class Request
     public function getPost($strKey = null, $blnDecodeEntities = false, $blnTidy = true, $blnStrictMode = true)
     {
         if (null === $strKey) {
-            $arrValues = $this->getInstance()->request;
+            $arrValues = $this->getInstance()->request->all();
 
             if (is_array($arrValues)) {
                 foreach ($arrValues as $key => &$varValue) {
@@ -362,7 +362,7 @@ class Request
     public function getPostHtml($strKey = null, $blnDecodeEntities = false, $strAllowedTags = null, $blnTidy = true, $blnStrictMode = true)
     {
         if (null === $strKey) {
-            $arrValues = $this->getInstance()->request;
+            $arrValues = $this->getInstance()->request->all();
 
             if (is_array($arrValues)) {
                 foreach ($arrValues as $key => &$varValue) {
@@ -388,7 +388,7 @@ class Request
     public function getPostRaw($strKey = null, $blnTidy = false, $blnStrictMode = false)
     {
         if (null === $strKey) {
-            $arrValues = $this->getInstance()->request;
+            $arrValues = $this->getInstance()->request->all();
 
             if (is_array($arrValues)) {
                 foreach ($arrValues as $key => &$varValue) {

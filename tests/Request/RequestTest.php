@@ -96,16 +96,16 @@ class RequestTest extends ContaoTestCase
 
     public function testGetPost()
     {
-        $_POST = ['id' => 12];
+        $_POST = ['test' => ['id' => 12]];
 
         $result = $this->request->getPost(null, true);
-        $this->assertSame(['id' => 12], $result->all());
+        $this->assertSame(['test' => ['id' => '12']], $result);
 
         $result = $this->request->getPostHtml(null, true);
-        $this->assertSame(['id' => 12], $result->all());
+        $this->assertSame(['test' => ['id' => '12']], $result);
 
         $result = $this->request->getPostRaw(null, true);
-        $this->assertSame(['id' => 12], $result->all());
+        $this->assertSame(['test' => ['id' => '12']], $result);
     }
 
     public function testXssClean()

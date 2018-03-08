@@ -55,7 +55,5 @@ class InsertTagsListener
             case 'request_post':
                 return System::getContainer()->get('huh.request.request')->getPost($key);
         }
-
-        return '';
     }
 }
