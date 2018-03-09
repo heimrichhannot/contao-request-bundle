@@ -94,13 +94,14 @@ class RequestParameterBagTest extends ContaoTestCase
 
     public function testSet()
     {
+        $_POST = ['id' => 12];
         $this->request->request->set('id', 13);
         $this->assertSame(13, $this->request->request->get('id'));
     }
 
     public function testHas()
     {
-        $this->request->request->set('id', 13);
+        $_POST = ['id' => 13];
         $this->assertTrue($this->request->request->has('id'));
     }
 
@@ -116,5 +117,37 @@ class RequestParameterBagTest extends ContaoTestCase
         $_POST = ['test' => '123', 'id' => 13];
         $this->assertSame('123', $this->request->request->getAlnum('test'));
         $this->assertSame('13', $this->request->request->getAlnum('id'));
+    }
+
+    public function testGetDigits()
+    {
+        $_POST = ['test' => '123Test'];
+        $this->assertSame('123', $this->request->request->getDigits('test'));
+    }
+
+    public function testGetBoolean()
+    {
+        $_POST = ['false' => '123Test', 'true' => 1];
+        $this->assertFalse($this->request->request->getBoolean('false'));
+        $this->assertTrue($this->request->request->getBoolean('true'));
+    }
+
+    public function testCount()
+    {
+        $_POST = ['false' => '123Test', 'true' => 1];
+        $this->assertSame(2, $this->request->request->count());
+    }
+
+    public function testGetIterator()
+    {
+        $_POST = ['false' => '123Test', 'true' => 1];
+        $this->assertInstanceOf(\ArrayIterator::class, $this->request->request->getIterator());
+    }
+
+    public function testFilter()
+    {
+        $_POST = ['test' => 'on', 'id' => 13];
+
+        $this->assertTrue($this->request->request->filter('test', null, FILTER_VALIDATE_BOOLEAN));
     }
 }
