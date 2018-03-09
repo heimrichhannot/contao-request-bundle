@@ -8,8 +8,10 @@
 
 namespace HeimrichHannot\RequestBundle\Test\Request;
 
+use Contao\System;
 use Contao\TestCase\ContaoTestCase;
 use HeimrichHannot\RequestBundle\Request;
+use HeimrichHannot\UtilsBundle\Container\ContainerUtil;
 
 class RequestTest extends ContaoTestCase
 {
@@ -23,6 +25,10 @@ class RequestTest extends ContaoTestCase
         parent::setUp();
 
         $this->request = new Request($this->mockContaoFramework());
+
+        $container = $this->mockContainer();
+        $container->set('huh.utils.container', new ContainerUtil($this->mockContaoFramework()));
+        System::setContainer($container);
     }
 
     public function testGetInstance()
@@ -81,7 +87,7 @@ class RequestTest extends ContaoTestCase
         $result = $this->request->cleanHtml(null);
         $this->assertNull($result);
 
-        $result = $this->request->cleanHtml('value', false, true, null, false);
+        $result = $this->request->cleanHtml('value', false, true, '', false);
         $this->assertSame('value', $result);
     }
 

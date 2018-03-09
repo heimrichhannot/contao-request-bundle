@@ -11,6 +11,7 @@ namespace HeimrichHannot\RequestBundle;
 use Contao\CoreBundle\Framework\ContaoFrameworkInterface;
 use Contao\Input;
 use Contao\StringUtil;
+use Contao\System;
 use Contao\Validator;
 use Symfony\Component\CssSelector\Exception\SyntaxErrorException;
 use Wa72\HtmlPageDom\HtmlPageCrawler;
@@ -22,7 +23,7 @@ class Request
      *
      * @var \Symfony\Component\HttpFoundation\Request
      */
-    protected $objInstance;
+    protected $instance;
 
     /**
      * Request object.
@@ -58,7 +59,7 @@ class Request
      */
     public function getInstance()
     {
-        if (null === $this->objInstance) {
+        if (null === $this->instance) {
             if (null === $_GET) {
                 $_GET = [];
             }
@@ -66,20 +67,20 @@ class Request
             if (null === $_POST) {
                 $_POST = [];
             }
-            $this->objInstance = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+            $this->instance = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
         }
 
         // handle \Contao\Input unused $_GET parameters
         if (!empty($_GET)) {
-            $this->objInstance->query->add($_GET);
+            $this->instance->query->add($_GET);
         }
 
         // handle \Contao\Input unused $_POST parameters
         if (!empty($_POST)) {
-            $this->objInstance->request->add($_POST);
+            $this->instance->request->add($_POST);
         }
 
-        return $this->objInstance;
+        return $this->instance;
     }
 
     /**
@@ -91,273 +92,275 @@ class Request
      */
     public function set(\Symfony\Component\HttpFoundation\Request $request)
     {
-        $this->objInstance = $request;
+        $this->instance = $request;
 
-        return $this->objInstance;
+        return $this->instance;
     }
 
     /**
      * Shorthand setter for query arguments ($_GET).
      *
-     * @param string $strKey   The requested field
-     * @param mixed  $varValue The input value
+     * @param string $key   The requested field
+     * @param mixed  $value The input value
      */
-    public function setGet($strKey, $varValue)
+    public function setGet(string $key, $value)
     {
         // Convert special characters (see #7829)
-        $strKey = str_replace([' ', '.', '['], '_', $strKey);
+        $key = str_replace([' ', '.', '['], '_', $key);
 
-        $strKey = Input::cleanKey($strKey);
+        $key = Input::cleanKey($key);
 
-        if (null === $varValue) {
-            $this->getInstance()->query->remove($strKey);
+        if (null === $value) {
+            $this->getInstance()->query->remove($key);
         } else {
-            $this->getInstance()->query->set($strKey, $varValue);
+            $this->getInstance()->query->set($key, $value);
         }
     }
 
     /**
      * Shorthand setter for request arguments ($_POST).
      *
-     * @param string $strKey   The requested field
-     * @param mixed  $varValue The input value
+     * @param string $key   The requested field
+     * @param mixed  $value The input value
      */
-    public function setPost($strKey, $varValue)
+    public function setPost(string $key, $value)
     {
-        $strKey = Input::cleanKey($strKey);
+        $key = Input::cleanKey($key);
 
-        if (null === $varValue) {
-            $this->getInstance()->request->remove($strKey);
+        if (null === $value) {
+            $this->getInstance()->request->remove($key);
         } else {
-            $this->getInstance()->request->set($strKey, $varValue);
+            $this->getInstance()->request->set($key, $value);
         }
     }
 
     /**
      * Shorthand getter for query arguments ($_GET).
      *
-     * @param string $strKey            The requested field
-     * @param bool   $blnDecodeEntities If true, all entities will be decoded
-     * @param bool   $blnTidy           If true, varValue is tidied up
+     * @param string $postKey        The requested field
+     * @param bool   $decodeEntities If true, all entities will be decoded
+     * @param bool   $tidy           If true, varValue is tidied up
      *
      * @return mixed If no $strkey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
      */
-    public function getGet($strKey = null, $blnDecodeEntities = false, $blnTidy = false)
+    public function getGet(string $postKey = null, bool $decodeEntities = false, bool $tidy = false)
     {
-        if (null === $strKey) {
-            $arrValues = $this->getInstance()->query;
+        if (null === $postKey) {
+            $postValues = $this->getInstance()->query;
 
-            if ($blnDecodeEntities) {
-                foreach ($arrValues as $key => &$varValue) {
-                    $varValue = $this->clean($varValue, $blnDecodeEntities, true, $blnTidy);
+            if ($decodeEntities) {
+                foreach ($postValues as $key => &$value) {
+                    $value = $this->clean($value, $decodeEntities, true, $tidy);
                 }
             }
 
-            return $arrValues;
+            return $postValues;
         }
 
-        return $this->clean($this->getInstance()->query->get($strKey), $blnDecodeEntities, true, $blnTidy);
+        return $this->clean($this->getInstance()->query->get($postKey), $decodeEntities, true, $tidy);
     }
 
     /**
      * XSS clean, decodeEntities, tidy/strip tags, encode special characters and encode inserttags and return save, cleaned value(s).
      *
-     * @param mixed $varValue            The input value
-     * @param bool  $blnDecodeEntities   If true, all entities will be decoded
-     * @param bool  $blnEncodeInsertTags If true, encode the opening and closing delimiters of insert tags
-     * @param bool  $blnTidy             If true, varValue is tidied up
-     * @param bool  $blnStrictMode       If true, the xss cleaner removes also JavaScript event handlers
+     * @param mixed $value            The input value
+     * @param bool  $decodeEntities   If true, all entities will be decoded
+     * @param bool  $encodeInsertTags If true, encode the opening and closing delimiters of insert tags
+     * @param bool  $tidy             If true, varValue is tidied up
+     * @param bool  $strictMode       If true, the xss cleaner removes also JavaScript event handlers
      *
      * @return mixed The cleaned value
      */
-    public function clean($varValue, $blnDecodeEntities = false, $blnEncodeInsertTags = true, $blnTidy = true, $blnStrictMode = true)
+    public function clean($value, bool $decodeEntities = false, bool $encodeInsertTags = true, bool $tidy = true, bool $strictMode = true)
     {
         // do not clean, otherwise empty string will be returned, not null
-        if (null === $varValue) {
-            return $varValue;
+        if (null === $value) {
+            return $value;
         }
 
-        if (is_array($varValue)) {
-            foreach ($varValue as $i => $childValue) {
-                $varValue[$i] = $this->clean($childValue, $blnDecodeEntities, $blnEncodeInsertTags, $blnTidy, $blnStrictMode);
+        if (is_array($value)) {
+            foreach ($value as $i => $childValue) {
+                $value[$i] = $this->clean($childValue, $decodeEntities, $encodeInsertTags, $tidy, $strictMode);
             }
 
-            return $varValue;
+            return $value;
         }
 
         // do not handle binary uuid
-        if (Validator::isUuid($varValue)) {
-            return $varValue;
+        if (Validator::isUuid($value)) {
+            return $value;
         }
 
-        $varValue = $this->xssClean($varValue, $blnStrictMode);
+        $value = $this->xssClean($value, $strictMode);
 
-        if ($blnTidy) {
-            $varValue = $this->tidy($varValue);
+        if ($tidy) {
+            $value = $this->tidy($value);
         } else {
             // decodeEntities for tidy is more complex, because non allowed tags should be displayed as readable text, not as html entity
-            $varValue = Input::decodeEntities($varValue);
+            $value = Input::decodeEntities($value);
         }
 
         // do not encodeSpecialChars when tidy did run, otherwise non allowed tags will be encoded twice
-        if (!$blnDecodeEntities && !$blnTidy) {
-            $varValue = Input::encodeSpecialChars($varValue);
+        if (!$decodeEntities && !$tidy) {
+            $value = Input::encodeSpecialChars($value);
         }
 
-        if ($blnEncodeInsertTags) {
-            $varValue = Input::encodeInsertTags($varValue);
+        if ($encodeInsertTags) {
+            $value = Input::encodeInsertTags($value);
         }
 
-        return $varValue;
+        return $value;
     }
 
     /**
      * XSS clean, decodeEntities, tidy/strip tags, encode special characters and encode inserttags and return save, cleaned value(s).
      *
-     * @param mixed  $varValue            The input value
-     * @param bool   $blnDecodeEntities   If true, all entities will be decoded
-     * @param bool   $blnEncodeInsertTags If true, encode the opening and closing delimiters of insert tags
-     * @param string $strAllowedTags      List of allowed html tags
-     * @param bool   $blnTidy             If true, varValue is tidied up
-     * @param bool   $blnStrictMode       If true, the xss cleaner removes also JavaScript event handlers
+     * @param mixed  $value            The input value
+     * @param bool   $decodeEntities   If true, all entities will be decoded
+     * @param bool   $encodeInsertTags If true, encode the opening and closing delimiters of insert tags
+     * @param string $allowedTags      List of allowed html tags
+     * @param bool   $tidy             If true, varValue is tidied up
+     * @param bool   $strictMode       If true, the xss cleaner removes also JavaScript event handlers
      *
      * @return mixed The cleaned value
      */
-    public function cleanHtml($varValue, $blnDecodeEntities = false, $blnEncodeInsertTags = true, $strAllowedTags = null, $blnTidy = true, $blnStrictMode = true)
+    public function cleanHtml($value, bool $decodeEntities = false, bool $encodeInsertTags = true, string $allowedTags = '', bool $tidy = true, bool $strictMode = true)
     {
         // do not clean, otherwise empty string will be returned, not null
-        if (null === $varValue) {
-            return $varValue;
+        if (null === $value) {
+            return $value;
         }
 
-        if (is_array($varValue)) {
-            foreach ($varValue as $i => $childValue) {
-                $varValue[$i] = $this->cleanHtml($childValue, $blnDecodeEntities, $blnEncodeInsertTags, $strAllowedTags, $blnTidy, $blnStrictMode);
+        if (is_array($value)) {
+            foreach ($value as $i => $childValue) {
+                $value[$i] = $this->cleanHtml($childValue, $decodeEntities, $encodeInsertTags, $allowedTags, $tidy, $strictMode);
             }
 
-            return $varValue;
+            return $value;
         }
 
         // do not handle binary uuid
-        if (Validator::isUuid($varValue)) {
-            return $varValue;
+        if (Validator::isUuid($value)) {
+            return $value;
         }
 
-        $varValue = $this->xssClean($varValue, $blnStrictMode);
+        $value = $this->xssClean($value, $strictMode);
 
-        if ($blnTidy) {
-            $varValue = $this->tidy($varValue, $strAllowedTags, $blnDecodeEntities);
+        if ($tidy) {
+            $value = $this->tidy($value, $allowedTags, $decodeEntities);
         } else {
             // decodeEntities for tidy is more complex, because non allowed tags should be displayed as readable text, not as html entity
-            $varValue = Input::decodeEntities($varValue);
+            $value = Input::decodeEntities($value);
         }
 
         // do not encodeSpecialChars when tidy did run, otherwise non allowed tags will be encoded twice
-        if (!$blnDecodeEntities && !$blnTidy) {
-            $varValue = Input::encodeSpecialChars($varValue);
+        if (!$decodeEntities && !$tidy) {
+            $value = Input::encodeSpecialChars($value);
         }
 
-        if ($blnEncodeInsertTags) {
-            $varValue = Input::encodeInsertTags($varValue);
+        if ($encodeInsertTags) {
+            $value = Input::encodeInsertTags($value);
         }
 
-        return $varValue;
+        return $value;
     }
 
     /**
      * XSS clean, preserve basic entities encode inserttags and return raw unsafe but filtered value.
      *
-     * @param mixed $varValue            The input value
-     * @param bool  $blnEncodeInsertTags If true, encode the opening and closing delimiters of insert tags
-     * @param bool  $blnTidy             If true, varValue is tidied up
-     * @param bool  $blnStrictMode       If true, the xss cleaner removes also JavaScript event handlers
+     * @param mixed $value            The input value
+     * @param bool  $encodeInsertTags If true, encode the opening and closing delimiters of insert tags
+     * @param bool  $tidy             If true, varValue is tidied up
+     * @param bool  $strictMode       If true, the xss cleaner removes also JavaScript event handlers
      *
      * @return mixed The cleaned value
      */
-    public function cleanRaw($varValue, $blnEncodeInsertTags = true, $blnTidy = false, $blnStrictMode = false)
+    public function cleanRaw($value, bool $encodeInsertTags = true, bool $tidy = false, bool $strictMode = false)
     {
         // do not clean, otherwise empty string will be returned, not null
-        if (null === $varValue) {
-            return $varValue;
+        if (null === $value) {
+            return $value;
         }
 
-        if (is_array($varValue)) {
-            foreach ($varValue as $i => $childValue) {
-                $varValue[$i] = $this->cleanRaw($childValue, $blnEncodeInsertTags, $blnTidy, $blnStrictMode);
+        if (is_array($value)) {
+            foreach ($value as $i => $childValue) {
+                $value[$i] = $this->cleanRaw($childValue, $encodeInsertTags, $tidy, $strictMode);
             }
 
-            return $varValue;
+            return $value;
         }
 
         // do not handle binary uuid
-        if (Validator::isUuid($varValue)) {
-            return $varValue;
+        if (Validator::isUuid($value)) {
+            return $value;
         }
 
-        $varValue = $this->xssClean($varValue, $blnStrictMode);
+        $value = $this->xssClean($value, $strictMode);
 
-        if ($blnTidy) {
-            $varValue = $this->tidy($varValue);
+        if ($tidy) {
+            $value = $this->tidy($value);
         }
 
-        $varValue = Input::preserveBasicEntities($varValue);
+        $value = Input::preserveBasicEntities($value);
 
-        if ($blnEncodeInsertTags) {
-            $varValue = Input::encodeInsertTags($varValue);
+        if ($encodeInsertTags) {
+            $value = Input::encodeInsertTags($value);
         }
 
-        return $varValue;
+        return $value;
     }
 
     /**
      * Returns true if the get parameter is defined.
      *
-     * @param string $strKey The key
+     * @param string $key The key
      *
      * @return bool true if the parameter exists, false otherwise
      */
-    public function hasGet($strKey)
+    public function hasGet(string $key)
     {
-        return $this->getInstance()->query->has($strKey);
+        return $this->getInstance()->query->has($key);
     }
 
     /**
      * Shorthand getter for request arguments ($_POST).
      *
-     * @param string $strKey            The requested field
-     * @param bool   $blnDecodeEntities If true, all entities will be decoded
-     * @param bool   $blnTidy           If true, varValue is tidied up
-     * @param bool   $blnStrictMode     If true, the xss cleaner removes also JavaScript event handlers
+     * @param string $key            The requested field
+     * @param bool   $decodeEntities If true, all entities will be decoded
+     * @param bool   $tidy           If true, varValue is tidied up
+     * @param bool   $strictMode     If true, the xss cleaner removes also JavaScript event handlers
      *
      * @return null|mixed If no $strKey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
      */
-    public function getPost($strKey, $blnDecodeEntities = false, $blnTidy = true, $blnStrictMode = true)
+    public function getPost(string $key, bool $decodeEntities = false, bool $tidy = true, bool $strictMode = true)
     {
-        if (!$this->getInstance()->request->has($strKey)) {
+        if (!$this->getInstance()->request->has($key)) {
             return null;
         }
 
-        return $this->clean($this->getInstance()->request->get($strKey), $blnDecodeEntities, TL_MODE !== 'BE', $blnTidy, $blnStrictMode);
+        return $this->clean($this->getInstance()->request->get($key), $decodeEntities, TL_MODE !== 'BE', $tidy, $strictMode);
     }
 
     /**
      * Shorthand getter for request arguments ($_POST).
      *
-     * @param string $strKey            The requested field
-     * @param bool   $blnDecodeEntities If true, all entities will be decoded
-     * @param bool   $blnTidy           If true, varValue is tidied up
-     * @param bool   $blnStrictMode     If true, the xss cleaner removes also JavaScript event handlers
+     * @param string $strKey         The requested field
+     * @param bool   $decodeEntities If true, all entities will be decoded
+     * @param bool   $tidy           If true, varValue is tidied up
+     * @param bool   $strictMode     If true, the xss cleaner removes also JavaScript event handlers
      *
-     * @return mixed If no $strKey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
+     * @return array If no $strKey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
      */
-    public function getAllPost($blnDecodeEntities = false, $blnTidy = true, $blnStrictMode = true)
+    public function getAllPost(bool $decodeEntities = false, bool $tidy = true, bool $strictMode = true): array
     {
         $arrValues = $this->getInstance()->request->all();
 
-        if (is_array($arrValues)) {
-            foreach ($arrValues as $key => &$varValue) {
-                $varValue = $this->clean($varValue, $blnDecodeEntities, TL_MODE !== 'BE', $blnTidy, $blnStrictMode);
-            }
+        if (empty($arrValues)) {
+            return $arrValues;
+        }
+
+        foreach ($arrValues as $key => &$varValue) {
+            $varValue = $this->clean($varValue, $decodeEntities, System::getContainer()->get('huh.utils.container')->isFrontend(), $tidy, $strictMode);
         }
 
         return $arrValues;
@@ -366,42 +369,44 @@ class Request
     /**
      * Shorthand getter for request arguments ($_POST) preserving allowed HTML tags.
      *
-     * @param string $strKey            The requested field
-     * @param bool   $blnDecodeEntities If true, all entities will be decoded
-     * @param string $strAllowedTags    List of allowed html tags
-     * @param bool   $blnTidy           If true, varValue is tidied up
-     * @param bool   $blnStrictMode     If true, the xss cleaner removes also JavaScript event handlers
+     * @param string $key            The requested field
+     * @param bool   $decodeEntities If true, all entities will be decoded
+     * @param string $allowedTags    List of allowed html tags
+     * @param bool   $tidy           If true, varValue is tidied up
+     * @param bool   $strictMode     If true, the xss cleaner removes also JavaScript event handlers
      *
      * @return null|mixed If no $strKey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
      */
-    public function getPostHtml($strKey, $blnDecodeEntities = false, $strAllowedTags = null, $blnTidy = true, $blnStrictMode = true)
+    public function getPostHtml(string $key, bool $decodeEntities = false, string $allowedTags = '', bool $tidy = true, bool $strictMode = true)
     {
-        if (!$this->getInstance()->request->has($strKey)) {
+        if (!$this->getInstance()->request->has($key)) {
             return null;
         }
 
-        return $this->cleanHtml($this->getInstance()->request->get($strKey), $blnDecodeEntities, TL_MODE !== 'BE', $strAllowedTags, $blnTidy, $blnStrictMode);
+        return $this->cleanHtml($this->getInstance()->request->get($key), $decodeEntities, TL_MODE !== 'BE', $allowedTags, $tidy, $strictMode);
     }
 
     /**
      * Shorthand getter for request arguments ($_POST) preserving allowed HTML tags.
      *
-     * @param string $strKey            The requested field
-     * @param bool   $blnDecodeEntities If true, all entities will be decoded
-     * @param string $strAllowedTags    List of allowed html tags
-     * @param bool   $blnTidy           If true, varValue is tidied up
-     * @param bool   $blnStrictMode     If true, the xss cleaner removes also JavaScript event handlers
+     * @param string $strKey         The requested field
+     * @param bool   $decodeEntities If true, all entities will be decoded
+     * @param string $allowedTags    List of allowed html tags
+     * @param bool   $tidy           If true, varValue is tidied up
+     * @param bool   $strictMode     If true, the xss cleaner removes also JavaScript event handlers
      *
-     * @return mixed If no $strKey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
+     * @return array
      */
-    public function getAllPostHtml($blnDecodeEntities = false, $strAllowedTags = null, $blnTidy = true, $blnStrictMode = true)
+    public function getAllPostHtml(bool $decodeEntities = false, string $allowedTags = '', bool $tidy = true, bool $strictMode = true): array
     {
         $arrValues = $this->getInstance()->request->all();
 
-        if (is_array($arrValues)) {
-            foreach ($arrValues as $key => &$varValue) {
-                $varValue = $this->cleanHtml($varValue, $blnDecodeEntities, TL_MODE !== 'BE', $strAllowedTags, $blnTidy, $blnStrictMode);
-            }
+        if (empty($arrValues)) {
+            return $arrValues;
+        }
+
+        foreach ($arrValues as $key => &$varValue) {
+            $varValue = $this->cleanHtml($varValue, $decodeEntities, TL_MODE !== 'BE', $allowedTags, $tidy, $strictMode);
         }
 
         return $arrValues;
@@ -410,38 +415,40 @@ class Request
     /**
      * Shorthand getter for request arguments ($_POST), returning raw, unsafe but filtered values.
      *
-     * @param string $strKey        The requested field
-     * @param bool   $blnTidy       If true, varValue is tidied up
-     * @param bool   $blnStrictMode If true, the xss cleaner removes also JavaScript event handlers
+     * @param string $key        The requested field
+     * @param bool   $tidy       If true, varValue is tidied up
+     * @param bool   $strictMode If true, the xss cleaner removes also JavaScript event handlers
      *
      * @return null|mixed If no $strkey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
      */
-    public function getPostRaw($strKey, $blnTidy = false, $blnStrictMode = false)
+    public function getPostRaw(string $key, bool $tidy = false, bool $strictMode = false)
     {
-        if (!$this->getInstance()->request->has($strKey)) {
+        if (!$this->getInstance()->request->has($key)) {
             return null;
         }
 
-        return $this->cleanRaw($this->getInstance()->request->get($strKey), TL_MODE !== 'BE', $blnTidy, $blnStrictMode);
+        return $this->cleanRaw($this->getInstance()->request->get($key), TL_MODE !== 'BE', $tidy, $strictMode);
     }
 
     /**
      * Shorthand getter for request arguments ($_POST), returning raw, unsafe but filtered values.
      *
-     * @param string $strKey        The requested field
-     * @param bool   $blnTidy       If true, varValue is tidied up
-     * @param bool   $blnStrictMode If true, the xss cleaner removes also JavaScript event handlers
+     * @param string $strKey     The requested field
+     * @param bool   $tidy       If true, varValue is tidied up
+     * @param bool   $strictMode If true, the xss cleaner removes also JavaScript event handlers
      *
-     * @return mixed If no $strkey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
+     * @return array
      */
-    public function getAllPostRaw($blnTidy = false, $blnStrictMode = false)
+    public function getAllPostRaw(bool $tidy = false, bool $strictMode = false): array
     {
         $arrValues = $this->getInstance()->request->all();
 
-        if (is_array($arrValues)) {
-            foreach ($arrValues as $key => &$varValue) {
-                $varValue = $this->cleanRaw($varValue, TL_MODE !== 'BE', $blnTidy, $blnStrictMode);
-            }
+        if (empty($arrValues)) {
+            return $arrValues;
+        }
+
+        foreach ($arrValues as $key => &$varValue) {
+            $varValue = $this->cleanRaw($varValue, TL_MODE !== 'BE', $tidy, $strictMode);
         }
 
         return $arrValues;
@@ -450,17 +457,16 @@ class Request
     /**
      * Clean a value and try to prevent XSS attacks.
      *
-     * @param mixed $varValue      A string or array
-     * @param bool  $blnStrictMode If true, the function removes also JavaScript event handlers
-     * @param bool  $blnTidy       If true, varValue is tidied up
+     * @param mixed $varValue   A string or array
+     * @param bool  $strictMode If true, the function removes also JavaScript event handlers
      *
      * @return mixed The cleaned string or array
      */
-    public function xssClean($varValue, $blnStrictMode = false)
+    public function xssClean($varValue, bool $strictMode = false)
     {
         if (is_array($varValue)) {
             foreach ($varValue as $key => $value) {
-                $varValue[$key] = $this->xssClean($value, $blnStrictMode);
+                $varValue[$key] = $this->xssClean($value, $strictMode);
             }
 
             return $varValue;
@@ -478,7 +484,7 @@ class Request
         // fix: "><script>alert('xss')</script> or '></SCRIPT>">'><SCRIPT>alert(String.fromCharCode(88,83,83))</SCRIPT>
         $varValue = preg_replace('/(?<!\w)(?>["|\']>)+(<[^\/^>]+>.*)/', '$1', $varValue);
 
-        $varValue = Input::xssClean($varValue, $blnStrictMode);
+        $varValue = Input::xssClean($varValue, $strictMode);
 
         return $varValue;
     }
@@ -486,13 +492,13 @@ class Request
     /**
      * Tidy an value.
      *
-     * @param string $varValue          Input value
-     * @param string $strAllowedTags    Allowed tags as string `<p><span>`
-     * @param bool   $blnDecodeEntities If true, all entities will be decoded
+     * @param string $varValue       Input value
+     * @param string $allowedTags    Allowed tags as string `<p><span>`
+     * @param bool   $decodeEntities If true, all entities will be decoded
      *
      * @return string The tidied string
      */
-    public function tidy($varValue, $strAllowedTags = '', $blnDecodeEntities = false)
+    public function tidy($varValue, string $allowedTags = '', bool $decodeEntities = false): string
     {
         if (!$varValue) {
             return $varValue;
@@ -531,7 +537,7 @@ class Request
             $objCrawler = new HtmlPageCrawler('<div id="tidyWrapperx123x123xawec3">'.$varValue.'</div>');
         }
 
-        $arrAllowedTags = explode('<', str_replace('>', '', $strAllowedTags));
+        $arrAllowedTags = explode('<', str_replace('>', '', $allowedTags));
         $arrAllowedTags = array_filter($arrAllowedTags);
 
         try {
@@ -570,9 +576,9 @@ class Request
         } catch (SyntaxErrorException $e) {
         }
 
-        $varValue = $this->restoreBasicEntities($varValue, $blnDecodeEntities);
+        $varValue = $this->restoreBasicEntities($varValue, $decodeEntities);
 
-        if (!$blnDecodeEntities) {
+        if (!$decodeEntities) {
             $varValue = Input::encodeSpecialChars($varValue);
         }
 
@@ -587,31 +593,31 @@ class Request
     /**
      * Restore basic entities.
      *
-     * @param string $strBuffer         The string with the tags to be replaced
-     * @param bool   $blnDecodeEntities If true, all entities will be decoded
+     * @param string $buffer         The string with the tags to be replaced
+     * @param bool   $decodeEntities If true, all entities will be decoded
      *
      * @return string The string with the original entities
      */
-    public function restoreBasicEntities($strBuffer, $blnDecodeEntities = false)
+    public function restoreBasicEntities(string $buffer, bool $decodeEntities = false): string
     {
-        $strBuffer = str_replace(['[&]', '[&amp;]', '[lt]', '[gt]', '[nbsp]', '[-]'], ['&amp;', '&amp;', '&lt;', '&gt;', '&nbsp;', '&shy;'], $strBuffer);
+        $buffer = str_replace(['[&]', '[&amp;]', '[lt]', '[gt]', '[nbsp]', '[-]'], ['&amp;', '&amp;', '&lt;', '&gt;', '&nbsp;', '&shy;'], $buffer);
 
-        if ($blnDecodeEntities) {
-            $strBuffer = StringUtil::decodeEntities($strBuffer);
+        if ($decodeEntities) {
+            $buffer = StringUtil::decodeEntities($buffer);
         }
 
-        return $strBuffer;
+        return $buffer;
     }
 
     /**
      * Returns true if the post parameter is defined.
      *
-     * @param string $strKey The key
+     * @param string $key The key
      *
      * @return bool true if the parameter exists, false otherwise
      */
-    public function hasPost($strKey)
+    public function hasPost(string $key): bool
     {
-        return $this->getInstance()->request->has($strKey);
+        return $this->getInstance()->request->has($key);
     }
 }

@@ -27,7 +27,7 @@ class InsertTagsListener
      *
      * @return string|false
      */
-    public function onReplaceInsertTags($tag)
+    public function onReplaceInsertTags(string $tag)
     {
         $elements = explode('::', $tag);
         $key = $elements[0];
@@ -47,7 +47,7 @@ class InsertTagsListener
      *
      * @return string
      */
-    private function replaceRequestInsertTags($insertTag, $key)
+    private function replaceRequestInsertTags(string $insertTag, string $key)
     {
         switch ($insertTag) {
             case 'request_get':

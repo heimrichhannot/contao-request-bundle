@@ -27,7 +27,7 @@ before_install:
 - if [[ "$COVERAGE" != "1" ]]; then phpenv config-rm xdebug.ini || true; fi
 install:
 - if [[ "$COMPOSER_FLAGS" == *"--prefer-lowest"* ]]; then composer update --no-interaction --quiet; fi
-- composer update $COMPOSER_FLAGS --no-interaction --no-suggest
+- composer update $CONTAO_VERSION --no-interaction --no-suggest
 notifications:
   email:
     recipients:
