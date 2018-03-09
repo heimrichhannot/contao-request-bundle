@@ -208,12 +208,8 @@ class RequestParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      *
      * @param array|null $unused
      */
-    protected function addUnused(array $unused = null): void
+    protected function addUnused(array $unused = []): void
     {
-        if (!is_array($unused)) {
-            return;
-        }
-
         $this->unused = new ParameterBag($unused);
         $this->parameters = array_merge($this->unused->all(), $this->parameters);
     }
