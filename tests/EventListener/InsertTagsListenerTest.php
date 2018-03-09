@@ -46,4 +46,21 @@ class InsertTagsListenerTest extends ContaoTestCase
         $result = $listener->onReplaceInsertTags('request_post::auto_item');
         $this->assertSame('success', $result);
     }
+
+    public function testReplaceRequestInsertTags()
+    {
+        $listener = new InsertTagsListener();
+
+        $function = $this->getMethod(InsertTagsListener::class, 'replaceRequestInsertTags');
+        $this->assertNull($function->invokeArgs($listener, ['', 'key']));
+    }
+
+    protected function getMethod($class, $name)
+    {
+        $class = new \ReflectionClass($class);
+        $method = $class->getMethod($name);
+        $method->setAccessible(true);
+
+        return $method;
+    }
 }
