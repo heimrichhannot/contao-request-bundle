@@ -12,6 +12,7 @@ use Contao\System;
 use Contao\TestCase\ContaoTestCase;
 use HeimrichHannot\RequestBundle\Request;
 use HeimrichHannot\UtilsBundle\Container\ContainerUtil;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class RequestTest extends ContaoTestCase
 {
@@ -28,6 +29,13 @@ class RequestTest extends ContaoTestCase
 
         $container = $this->mockContainer();
         $container->set('huh.utils.container', new ContainerUtil($this->mockContaoFramework()));
+
+        // request stack
+        $request = new \Symfony\Component\HttpFoundation\Request();
+        $requestStack = new RequestStack();
+        $requestStack->push($request);
+        $container->set('request_stack', $requestStack);
+
         System::setContainer($container);
     }
 
