@@ -235,6 +235,18 @@ class PostTest extends ContaoTestCase
                 true,
                 '<!-- comment --> <![CDATA ]>',
             ],
+            [
+                '',
+                '',
+                true,
+                '',
+            ],
+            [
+                '<!-- comment --> \\0<![CDATA ]>',
+                '',
+                true,
+                '<!-- comment --> <![CDATA ]>',
+            ],
         ];
 
         return $arrList;
