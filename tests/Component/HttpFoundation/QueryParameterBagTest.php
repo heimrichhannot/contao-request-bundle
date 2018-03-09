@@ -14,6 +14,11 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class QueryParameterBagTest extends ContaoTestCase
 {
+    /**
+     * @var Request
+     */
+    protected $request;
+
     public static function tearDownAfterClass(): void
     {
         parent::tearDownAfterClass();
@@ -28,21 +33,88 @@ class QueryParameterBagTest extends ContaoTestCase
         if (!defined('TL_MODE')) {
             define('TL_MODE', 'FE');
         }
+
+        $_GET = [];
+
+        $requestStack = new RequestStack();
+        $requestStack->push(new \Symfony\Component\HttpFoundation\Request());
+
+        $this->request = new Request($this->mockContaoFramework(), $requestStack);
     }
 
     public function testAddUnusedParameters()
     {
         $_GET = ['id' => 12];
 
-        $requestStack = new RequestStack();
-        $requestStack->push(new \Symfony\Component\HttpFoundation\Request());
-
-        $request = new Request($this->mockContaoFramework(), $requestStack);
-
-        $this->assertSame(['id' => 12], $request->query->all());
+        $this->assertSame(['id' => 12], $this->request->query->all());
 
         $_GET = ['id' => 12, 'test' => 'test'];
 
-        $this->assertSame(['id' => 12, 'test' => 'test'], $request->query->all());
+        $this->assertSame(['id' => 12, 'test' => 'test'], $this->request->query->all());
+    }
+
+    public function testKeys()
+    {
+        $_GET = ['id' => 12, 'test' => 'test'];
+        $this->assertSame(['id', 'test'], $this->request->query->keys());
+    }
+
+    public function testReplace()
+    {
+        $_GET = ['test' => 'test'];
+
+        $this->request->query->replace(['test' => 13]);
+
+        $this->assertSame(['test' => 13], $this->request->query->all());
+    }
+
+    public function testAdd()
+    {
+        $_GET = ['id' => 12, 'test' => 'test'];
+        $this->request->query->add(['number' => 13]);
+
+        $this->assertSame(['id' => 12, 'test' => 'test', 'number' => 13], $this->request->query->all());
+    }
+
+    public function testRemove()
+    {
+        $_GET = ['name' => 'foo']; // unused $_GET (auto_item…)
+
+        $this->request->query->add(['foo' => 'bar']);
+        $this->request->query->remove('name');
+
+        $this->assertSame(['foo' => 'bar'], $this->request->query->all());
+    }
+
+    public function testGet()
+    {
+        $this->request->query->set('id', 13);
+        $this->assertSame(13, $this->request->query->get('id'));
+    }
+
+    public function testSet()
+    {
+        $this->request->query->set('id', 13);
+        $this->assertSame(13, $this->request->query->get('id'));
+    }
+
+    public function testHas()
+    {
+        $this->request->query->set('id', 13);
+        $this->assertTrue($this->request->query->has('id'));
+    }
+
+    public function testGetAlpha()
+    {
+        $_GET = ['test' => '123Test', 'id' => 13];
+        $this->assertSame('Test', $this->request->query->getAlpha('test'));
+        $this->assertSame('', $this->request->query->getAlpha('id'));
+    }
+
+    public function testGetAlnum()
+    {
+        $_GET = ['test' => '123', 'id' => 13];
+        $this->assertSame('123', $this->request->query->getAlnum('test'));
+        $this->assertSame('13', $this->request->query->getAlnum('id'));
     }
 }

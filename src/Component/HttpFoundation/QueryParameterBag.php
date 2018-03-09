@@ -8,23 +8,23 @@
 
 namespace HeimrichHannot\RequestBundle\Component\HttpFoundation;
 
+use Symfony\Component\HttpFoundation\ParameterBag;
+
 class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
 {
     /**
-     * {@inheritdoc}
+     * @var ParameterBag
      */
-    public function __construct(array $parameters = [])
-    {
-        parent::__construct($parameters);
-        $this->addUnusedParameters();
-    }
+    protected $unused;
 
     /**
      * {@inheritdoc}
      */
     public function all()
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            $this->addUnused($_GET);
+        }
 
         return parent::all();
     }
@@ -34,7 +34,9 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function keys()
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            $this->addUnused($_GET);
+        }
 
         return parent::keys();
     }
@@ -44,7 +46,6 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function replace(array $parameters = [])
     {
-        $this->addUnusedParameters();
         parent::replace($parameters);
     }
 
@@ -53,7 +54,9 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function add(array $parameters = [])
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            $this->addUnused($_GET);
+        }
         parent::add($parameters);
     }
 
@@ -62,7 +65,9 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function get($key, $default = null)
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            $this->addUnused($_GET);
+        }
 
         return parent::get($key, $default);
     }
@@ -72,7 +77,9 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function set($key, $value)
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            $this->addUnused($_GET);
+        }
         parent::set($key, $value);
     }
 
@@ -81,7 +88,9 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function has($key)
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            $this->addUnused($_GET);
+        }
 
         return parent::has($key);
     }
@@ -91,7 +100,10 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function remove($key)
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            unset($_GET[$key]);
+            $this->addUnused($_GET);
+        }
         parent::remove($key);
     }
 
@@ -100,7 +112,9 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function getAlpha($key, $default = '')
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            $this->addUnused($_GET);
+        }
 
         return parent::getAlpha($key, $default);
     }
@@ -110,7 +124,9 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function getAlnum($key, $default = '')
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            $this->addUnused($_GET);
+        }
 
         return parent::getAlnum($key, $default);
     }
@@ -120,7 +136,9 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function getDigits($key, $default = '')
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            $this->addUnused($_GET);
+        }
 
         return parent::getDigits($key, $default);
     }
@@ -130,7 +148,9 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function getInt($key, $default = 0)
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            $this->addUnused($_GET);
+        }
 
         return parent::getInt($key, $default);
     }
@@ -140,7 +160,9 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function getBoolean($key, $default = false)
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            $this->addUnused($_GET);
+        }
 
         return parent::getBoolean($key, $default);
     }
@@ -150,7 +172,9 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function filter($key, $default = null, $filter = FILTER_DEFAULT, $options = [])
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            $this->addUnused($_GET);
+        }
 
         return parent::filter($key, $default, $filter, $options);
     }
@@ -160,7 +184,9 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function getIterator()
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            $this->addUnused($_GET);
+        }
 
         return parent::getIterator();
     }
@@ -170,19 +196,25 @@ class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
      */
     public function count()
     {
-        $this->addUnusedParameters();
+        if (!empty($_GET)) {
+            $this->addUnused($_GET);
+        }
 
         return parent::count();
     }
 
     /**
      * Add unused \Contao\Input parameters, used for contao auto_item handling.
+     *
+     * @param array|null $unused
      */
-    protected function addUnusedParameters(): void
+    protected function addUnused(array $unused = null): void
     {
-        // handle \Contao\Input unused $_GET parameters
-        if (!empty($_GET)) {
-            parent::add($_GET);
+        if (!is_array($unused)) {
+            return;
         }
+
+        $this->unused = new ParameterBag($unused);
+        $this->parameters = array_merge($this->unused->all(), $this->parameters);
     }
 }

@@ -32,6 +32,9 @@ class RequestTest extends ContaoTestCase
     {
         parent::setUp();
 
+        $_POST = [];
+        $_GET = [];
+
         $requestStack = new RequestStack();
         $requestStack->push(new \Symfony\Component\HttpFoundation\Request());
 
@@ -99,10 +102,9 @@ class RequestTest extends ContaoTestCase
 
     public function testGetGet()
     {
-        $_GET = ['id' => 12];
-
+        $this->request->query->replace(['id' => 22]);
         $result = $this->request->getGet(null, true);
-        $this->assertSame(['id' => 12], $result->all());
+        $this->assertSame(['id' => 22], $result->all());
     }
 
     public function testClean()
@@ -131,7 +133,7 @@ class RequestTest extends ContaoTestCase
 
     public function testGetPost()
     {
-        $_POST = ['test' => ['id' => 12]];
+        $this->request->request->set('test', ['id' => 12]);
 
         $result = $this->request->getPost('test', true);
         $this->assertSame(['id' => '12'], $result);
@@ -148,6 +150,8 @@ class RequestTest extends ContaoTestCase
 
     public function testGetAllPost()
     {
+        $_POST = ['test' => ['id' => '12']];
+
         $result = $this->request->getAllPost();
         $this->assertSame(['test' => ['id' => '12']], $result);
 
