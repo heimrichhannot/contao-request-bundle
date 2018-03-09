@@ -9,7 +9,8 @@
 namespace HeimrichHannot\RequestBundle\Test\Request;
 
 use Contao\TestCase\ContaoTestCase;
-use HeimrichHannot\RequestBundle\Request;
+use HeimrichHannot\RequestBundle\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class PostTest extends ContaoTestCase
 {
@@ -26,9 +27,13 @@ class PostTest extends ContaoTestCase
             define('TL_MODE', 'FE');
         }
 
-        $this->request = new Request($this->mockContaoFramework());
+        $requestStack = new RequestStack();
+        $requestStack->push(new \Symfony\Component\HttpFoundation\Request());
+
+        $this->request = new Request($this->mockContaoFramework(), $requestStack);
+
         // reset request parameter bag
-        $this->request->set(new \Symfony\Component\HttpFoundation\Request());
+        $this->request->setRequest(new \Symfony\Component\HttpFoundation\Request());
     }
 
     public function testPostHtmlPage()

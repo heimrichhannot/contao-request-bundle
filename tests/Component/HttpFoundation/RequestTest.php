@@ -6,11 +6,11 @@
  * @license LGPL-3.0-or-later
  */
 
-namespace HeimrichHannot\RequestBundle\Test\Request;
+namespace HeimrichHannot\RequestBundle\Test\Component\HttpFoundation;
 
 use Contao\System;
 use Contao\TestCase\ContaoTestCase;
-use HeimrichHannot\RequestBundle\Request;
+use HeimrichHannot\RequestBundle\Component\HttpFoundation\Request;
 use HeimrichHannot\UtilsBundle\Container\ContainerUtil;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -21,11 +21,21 @@ class RequestTest extends ContaoTestCase
      */
     protected $request;
 
+    public static function tearDownAfterClass(): void
+    {
+        parent::tearDownAfterClass();
+
+        unset($_GET, $_POST);
+    }
+
     public function setUp()
     {
         parent::setUp();
 
-        $this->request = new Request($this->mockContaoFramework());
+        $requestStack = new RequestStack();
+        $requestStack->push(new \Symfony\Component\HttpFoundation\Request());
+
+        $this->request = new Request($this->mockContaoFramework(), $requestStack);
 
         $container = $this->mockContainer();
         $container->set('huh.utils.container', new ContainerUtil($this->mockContaoFramework()));
@@ -44,13 +54,24 @@ class RequestTest extends ContaoTestCase
         $_GET = null;
         $_POST = null;
 
-        $result = $this->request->getInstance();
+        $result = $this->request;
         $this->assertInstanceOf(\Symfony\Component\HttpFoundation\Request::class, $result);
+        $this->assertSame([], $result->request->all());
+        $this->assertSame([], $result->query->all());
+
+        $result = $this->request->getAllPost();
+        $this->assertSame([], $result);
+
+        $result = $this->request->getAllPostHtml();
+        $this->assertSame([], $result);
+
+        $result = $this->request->getAllPostRaw();
+        $this->assertSame([], $result);
 
         $_GET = ['id' => 12];
         $_POST = ['id' => 12];
 
-        $result = $this->request->getInstance();
+        $result = $this->request;
         $this->assertInstanceOf(\Symfony\Component\HttpFoundation\Request::class, $result);
         $this->assertSame(12, $result->query->get('id'));
         $this->assertSame(12, $result->request->get('id'));
@@ -136,24 +157,14 @@ class RequestTest extends ContaoTestCase
         $result = $this->request->getAllPostRaw();
         $this->assertSame(['test' => ['id' => '12']], $result);
 
-        $request = new Request($this->mockContaoFramework());
-
-        $_POST = null;
-
-        $result = $request->getAllPost();
-        $this->assertSame([], $result);
-
-        $result = $request->getAllPostHtml();
-        $this->assertSame([], $result);
-
-        $result = $request->getAllPostRaw();
-        $this->assertSame([], $result);
+        $requestStack = new RequestStack();
+        $requestStack->push(new \Symfony\Component\HttpFoundation\Request());
     }
 
     public function testXssClean()
     {
         $uuid = \Contao\StringUtil::uuidToBin('9c6697cf-c874-11e7-8bb3-a08cfddc0261');
-        $result = $this->request->xssClean(['<script>alert("test")</script>', $uuid]);
-        $this->assertSame(['<script>alert("test")</script>', $uuid], $result);
+        $result = $this->request->xssClean(['<script>alert(\'xss\')</script>', $uuid]);
+        $this->assertSame(['<script>alert(\'xss\')</script>', $uuid], $result);
     }
 }

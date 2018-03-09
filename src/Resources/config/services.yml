@@ -4,8 +4,9 @@ services:
     public: true
     arguments:
       - '@contao.framework'
-  huh.request.request:
-    class: HeimrichHannot\RequestBundle\Request
+  huh.request:
+    class: HeimrichHannot\RequestBundle\Component\HttpFoundation\Request
     public: true
     arguments:
       - '@contao.framework'
+      - '@request_stack'

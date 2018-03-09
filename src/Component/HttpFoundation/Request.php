@@ -6,7 +6,7 @@
  * @license LGPL-3.0-or-later
  */
 
-namespace HeimrichHannot\RequestBundle;
+namespace HeimrichHannot\RequestBundle\Component\HttpFoundation;
 
 use Contao\CoreBundle\Framework\ContaoFrameworkInterface;
 use Contao\Input;
@@ -14,73 +14,86 @@ use Contao\StringUtil;
 use Contao\System;
 use Contao\Validator;
 use Symfony\Component\CssSelector\Exception\SyntaxErrorException;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Wa72\HtmlPageDom\HtmlPageCrawler;
 
-class Request
+class Request extends \Symfony\Component\HttpFoundation\Request
 {
     /**
-     * Object instance (Singleton).
+     * Request body parameters ($_POST).
      *
-     * @var \Symfony\Component\HttpFoundation\Request
+     * @var RequestParameterBag
      */
-    protected $instance;
+    public $request;
 
     /**
-     * Request object.
+     * Query string parameters ($_GET).
      *
-     * @var \Symfony\Component\HttpFoundation\Request
+     * @var QueryParameterBag
      */
-    protected $request;
-
+    public $query;
     /**
      * @var ContaoFrameworkInterface
      */
     protected $framework;
 
     /**
-     * Prevent direct instantiation (Singleton).
+     * Request constructor.
+     *
+     * @param ContaoFrameworkInterface $framework
+     * @param RequestStack             $requestStack
      */
-    public function __construct(ContaoFrameworkInterface $framework)
+    public function __construct(ContaoFrameworkInterface $framework, RequestStack $requestStack)
     {
         $this->framework = $framework;
+        $request = $requestStack->getCurrentRequest();
+        parent::__construct($request->query->all(), $request->request->all(), $request->attributes->all(), $request->cookies->all(), $request->files->all(), $request->server->all(), $request->getContent());
+
+        // As long as contao adds unused parameters to $_GET and $_POST Globals inside \Contao\Input, we have to add them inside custom ParameterBag classes
+        $this->query = new QueryParameterBag($request->query->all());
+        $this->request = new RequestParameterBag($request->request->all());
     }
 
     /**
-     * Prevent cloning of the object (Singleton).
-     */
-    final public function __clone()
-    {
-    }
-
-    /**
-     * Return the object instance (Singleton).
+     * @param $name
      *
-     * @return \Symfony\Component\HttpFoundation\Request The object instance
+     * @return mixed
      */
-    public function getInstance()
+    public function __get($name)
     {
-        if (null === $this->instance) {
-            if (null === $_GET) {
-                $_GET = [];
-            }
+        switch ($name) {
+            case 'request':
+                $this->addUnusedParameters();
 
-            if (null === $_POST) {
-                $_POST = [];
-            }
-            $this->instance = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+                return $this->request;
+            case 'query':
+                $this->addUnusedParameters();
         }
 
-        // handle \Contao\Input unused $_GET parameters
-        if (!empty($_GET)) {
-            $this->instance->query->add($_GET);
+        if (property_exists($this, $name)) {
+            return $this->{$name};
         }
 
-        // handle \Contao\Input unused $_POST parameters
-        if (!empty($_POST)) {
-            $this->instance->request->add($_POST);
+        return null;
+    }
+
+    /**
+     * Trigger before each function.
+     *
+     * @param $method
+     * @param $arguments
+     *
+     * @return mixed
+     */
+    public function __call($method, $arguments)
+    {
+        if (method_exists($this, $method)) {
+            $this->addUnusedParameters();
+
+            return call_user_func_array([$this, $method], $arguments);
         }
 
-        return $this->instance;
+        return null;
     }
 
     /**
@@ -90,11 +103,15 @@ class Request
      *
      * @return \Symfony\Component\HttpFoundation\Request
      */
-    public function set(\Symfony\Component\HttpFoundation\Request $request)
+    public function setRequest(\Symfony\Component\HttpFoundation\Request $request)
     {
-        $this->instance = $request;
+        $this->initialize($request->query->all(), $request->request->all(), $request->attributes->all(), $request->cookies->all(), $request->files->all(), $request->server->all(), $request->getContent());
 
-        return $this->instance;
+        // As long as contao adds unused parameters to $_GET and $_POST Globals inside \Contao\Input, we have to add them inside custom ParameterBag classes
+        $this->query = new QueryParameterBag($request->query->all());
+        $this->request = new RequestParameterBag($request->request->all());
+
+        return $this;
     }
 
     /**
@@ -111,9 +128,9 @@ class Request
         $key = Input::cleanKey($key);
 
         if (null === $value) {
-            $this->getInstance()->query->remove($key);
+            $this->query->remove($key);
         } else {
-            $this->getInstance()->query->set($key, $value);
+            $this->query->set($key, $value);
         }
     }
 
@@ -128,9 +145,9 @@ class Request
         $key = Input::cleanKey($key);
 
         if (null === $value) {
-            $this->getInstance()->request->remove($key);
+            $this->request->remove($key);
         } else {
-            $this->getInstance()->request->set($key, $value);
+            $this->request->set($key, $value);
         }
     }
 
@@ -146,7 +163,7 @@ class Request
     public function getGet(string $postKey = null, bool $decodeEntities = false, bool $tidy = false)
     {
         if (null === $postKey) {
-            $postValues = $this->getInstance()->query;
+            $postValues = $this->query;
 
             if ($decodeEntities) {
                 foreach ($postValues as $key => &$value) {
@@ -157,7 +174,7 @@ class Request
             return $postValues;
         }
 
-        return $this->clean($this->getInstance()->query->get($postKey), $decodeEntities, true, $tidy);
+        return $this->clean($this->query->get($postKey), $decodeEntities, true, $tidy);
     }
 
     /**
@@ -319,7 +336,7 @@ class Request
      */
     public function hasGet(string $key)
     {
-        return $this->getInstance()->query->has($key);
+        return $this->query->has($key);
     }
 
     /**
@@ -334,11 +351,11 @@ class Request
      */
     public function getPost(string $key, bool $decodeEntities = false, bool $tidy = true, bool $strictMode = true)
     {
-        if (!$this->getInstance()->request->has($key)) {
+        if (!$this->request->has($key)) {
             return null;
         }
 
-        return $this->clean($this->getInstance()->request->get($key), $decodeEntities, TL_MODE !== 'BE', $tidy, $strictMode);
+        return $this->clean($this->request->get($key), $decodeEntities, TL_MODE !== 'BE', $tidy, $strictMode);
     }
 
     /**
@@ -353,7 +370,7 @@ class Request
      */
     public function getAllPost(bool $decodeEntities = false, bool $tidy = true, bool $strictMode = true): array
     {
-        $arrValues = $this->getInstance()->request->all();
+        $arrValues = $this->request->all();
 
         if (empty($arrValues)) {
             return $arrValues;
@@ -379,11 +396,11 @@ class Request
      */
     public function getPostHtml(string $key, bool $decodeEntities = false, string $allowedTags = '', bool $tidy = true, bool $strictMode = true)
     {
-        if (!$this->getInstance()->request->has($key)) {
+        if (!$this->request->has($key)) {
             return null;
         }
 
-        return $this->cleanHtml($this->getInstance()->request->get($key), $decodeEntities, TL_MODE !== 'BE', $allowedTags, $tidy, $strictMode);
+        return $this->cleanHtml($this->request->get($key), $decodeEntities, TL_MODE !== 'BE', $allowedTags, $tidy, $strictMode);
     }
 
     /**
@@ -399,7 +416,7 @@ class Request
      */
     public function getAllPostHtml(bool $decodeEntities = false, string $allowedTags = '', bool $tidy = true, bool $strictMode = true): array
     {
-        $arrValues = $this->getInstance()->request->all();
+        $arrValues = $this->request->all();
 
         if (empty($arrValues)) {
             return $arrValues;
@@ -423,11 +440,11 @@ class Request
      */
     public function getPostRaw(string $key, bool $tidy = false, bool $strictMode = false)
     {
-        if (!$this->getInstance()->request->has($key)) {
+        if (!$this->request->has($key)) {
             return null;
         }
 
-        return $this->cleanRaw($this->getInstance()->request->get($key), TL_MODE !== 'BE', $tidy, $strictMode);
+        return $this->cleanRaw($this->request->get($key), TL_MODE !== 'BE', $tidy, $strictMode);
     }
 
     /**
@@ -441,7 +458,7 @@ class Request
      */
     public function getAllPostRaw(bool $tidy = false, bool $strictMode = false): array
     {
-        $arrValues = $this->getInstance()->request->all();
+        $arrValues = $this->request->all();
 
         if (empty($arrValues)) {
             return $arrValues;
@@ -618,6 +635,22 @@ class Request
      */
     public function hasPost(string $key): bool
     {
-        return $this->getInstance()->request->has($key);
+        return $this->request->has($key);
+    }
+
+    /**
+     * Add unused \Contao\Input parameters, used for contao auto_item handling.
+     */
+    protected function addUnusedParameters(): void
+    {
+        // handle \Contao\Input unused $_GET parameters
+        if (!empty($_GET)) {
+            $this->query->add($_GET);
+        }
+
+        // handle \Contao\Input unused $_POST parameters
+        if (!empty($_POST)) {
+            $this->request->add($_POST);
+        }
     }
 }
