@@ -55,48 +55,6 @@ class Request extends \Symfony\Component\HttpFoundation\Request
     }
 
     /**
-     * @param $name
-     *
-     * @return mixed
-     */
-    public function __get($name)
-    {
-        switch ($name) {
-            case 'request':
-                $this->addUnusedParameters();
-
-                return $this->request;
-            case 'query':
-                $this->addUnusedParameters();
-        }
-
-        if (property_exists($this, $name)) {
-            return $this->{$name};
-        }
-
-        return null;
-    }
-
-    /**
-     * Trigger before each function.
-     *
-     * @param $method
-     * @param $arguments
-     *
-     * @return mixed
-     */
-    public function __call($method, $arguments)
-    {
-        if (method_exists($this, $method)) {
-            $this->addUnusedParameters();
-
-            return call_user_func_array([$this, $method], $arguments);
-        }
-
-        return null;
-    }
-
-    /**
      * For test purposes use \Symfony\Component\HttpFoundation\Request::create() for dummy data.
      *
      * @param \Symfony\Component\HttpFoundation\Request $request
@@ -636,21 +594,5 @@ class Request extends \Symfony\Component\HttpFoundation\Request
     public function hasPost(string $key): bool
     {
         return $this->request->has($key);
-    }
-
-    /**
-     * Add unused \Contao\Input parameters, used for contao auto_item handling.
-     */
-    protected function addUnusedParameters(): void
-    {
-        // handle \Contao\Input unused $_GET parameters
-        if (!empty($_GET)) {
-            $this->query->add($_GET);
-        }
-
-        // handle \Contao\Input unused $_POST parameters
-        if (!empty($_POST)) {
-            $this->request->add($_POST);
-        }
     }
 }
