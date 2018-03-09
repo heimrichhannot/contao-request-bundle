@@ -150,4 +150,11 @@ class RequestParameterBagTest extends ContaoTestCase
 
         $this->assertTrue($this->request->request->filter('test', null, FILTER_VALIDATE_BOOLEAN));
     }
+
+    public function testGetInt()
+    {
+        $_POST = ['test' => 'on', 'id' => 13];
+
+        $this->assertSame(13, $this->request->request->getInt('id'));
+    }
 }

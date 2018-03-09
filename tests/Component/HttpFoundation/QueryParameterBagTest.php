@@ -152,4 +152,11 @@ class QueryParameterBagTest extends ContaoTestCase
 
         $this->assertTrue($this->request->query->filter('test', null, FILTER_VALIDATE_BOOLEAN));
     }
+
+    public function testGetInt()
+    {
+        $_GET = ['test' => 'on', 'id' => 13];
+
+        $this->assertSame(13, $this->request->query->getInt('id'));
+    }
 }
