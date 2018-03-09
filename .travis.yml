@@ -28,6 +28,7 @@ before_install:
 install:
 - if [[ "$COMPOSER_FLAGS" == *"--prefer-lowest"* ]]; then composer update --no-interaction --quiet; fi
 - composer require contao/core-bundle:${CONTAO_VERSION}
+- composer install $COMPOSER_FLAGS --no-interaction --no-suggest
 notifications:
   email:
     recipients:
