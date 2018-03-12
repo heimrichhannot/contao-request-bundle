@@ -9,9 +9,9 @@
 namespace HeimrichHannot\RequestBundle\Component\HttpFoundation;
 
 use Contao\CoreBundle\Framework\ContaoFrameworkInterface;
+use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\Input;
 use Contao\StringUtil;
-use Contao\System;
 use Contao\Validator;
 use Symfony\Component\CssSelector\Exception\SyntaxErrorException;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -20,22 +20,21 @@ use Wa72\HtmlPageDom\HtmlPageCrawler;
 class Request extends \Symfony\Component\HttpFoundation\Request
 {
     /**
-     * Request body parameters ($_POST).
-     *
-     * @var RequestParameterBag
-     */
-    public $request;
-
-    /**
      * Query string parameters ($_GET).
      *
      * @var QueryParameterBag
      */
     public $query;
+
     /**
      * @var ContaoFrameworkInterface
      */
     protected $framework;
+
+    /**
+     * @var ScopeMatcher
+     */
+    protected $scopeMatcher;
 
     /**
      * Request constructor.
@@ -43,15 +42,16 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param ContaoFrameworkInterface $framework
      * @param RequestStack             $requestStack
      */
-    public function __construct(ContaoFrameworkInterface $framework, RequestStack $requestStack)
+    public function __construct(ContaoFrameworkInterface $framework, RequestStack $requestStack, ScopeMatcher $scopeMatcher)
     {
         $this->framework = $framework;
+        $this->scopeMatcher = $scopeMatcher;
+
         $request = $requestStack->getCurrentRequest();
         parent::__construct($request->query->all(), $request->request->all(), $request->attributes->all(), $request->cookies->all(), $request->files->all(), $request->server->all(), $request->getContent());
 
         // As long as contao adds unused parameters to $_GET and $_POST Globals inside \Contao\Input, we have to add them inside custom ParameterBag classes
         $this->query = new QueryParameterBag($request->query->all());
-        $this->request = new RequestParameterBag($request->request->all());
     }
 
     /**
@@ -67,7 +67,6 @@ class Request extends \Symfony\Component\HttpFoundation\Request
 
         // As long as contao adds unused parameters to $_GET and $_POST Globals inside \Contao\Input, we have to add them inside custom ParameterBag classes
         $this->query = new QueryParameterBag($request->query->all());
-        $this->request = new RequestParameterBag($request->request->all());
 
         return $this;
     }
@@ -313,7 +312,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
             return null;
         }
 
-        return $this->clean($this->request->get($key), $decodeEntities, TL_MODE !== 'BE', $tidy, $strictMode);
+        return $this->clean($this->request->get($key), $decodeEntities, $this->scopeMatcher->isFrontendRequest($this), $tidy, $strictMode);
     }
 
     /**
@@ -335,7 +334,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
         }
 
         foreach ($arrValues as $key => &$varValue) {
-            $varValue = $this->clean($varValue, $decodeEntities, System::getContainer()->get('huh.utils.container')->isFrontend(), $tidy, $strictMode);
+            $varValue = $this->clean($varValue, $decodeEntities, $this->scopeMatcher->isFrontendRequest($this), $tidy, $strictMode);
         }
 
         return $arrValues;
@@ -358,7 +357,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
             return null;
         }
 
-        return $this->cleanHtml($this->request->get($key), $decodeEntities, TL_MODE !== 'BE', $allowedTags, $tidy, $strictMode);
+        return $this->cleanHtml($this->request->get($key), $decodeEntities, $this->scopeMatcher->isFrontendRequest($this), $allowedTags, $tidy, $strictMode);
     }
 
     /**
@@ -381,7 +380,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
         }
 
         foreach ($arrValues as $key => &$varValue) {
-            $varValue = $this->cleanHtml($varValue, $decodeEntities, TL_MODE !== 'BE', $allowedTags, $tidy, $strictMode);
+            $varValue = $this->cleanHtml($varValue, $decodeEntities, $this->scopeMatcher->isFrontendRequest($this), $allowedTags, $tidy, $strictMode);
         }
 
         return $arrValues;
@@ -402,7 +401,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
             return null;
         }
 
-        return $this->cleanRaw($this->request->get($key), TL_MODE !== 'BE', $tidy, $strictMode);
+        return $this->cleanRaw($this->request->get($key), $this->scopeMatcher->isFrontendRequest($this), $tidy, $strictMode);
     }
 
     /**
@@ -423,7 +422,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
         }
 
         foreach ($arrValues as $key => &$varValue) {
-            $varValue = $this->cleanRaw($varValue, TL_MODE !== 'BE', $tidy, $strictMode);
+            $varValue = $this->cleanRaw($varValue, $this->scopeMatcher->isFrontendRequest($this), $tidy, $strictMode);
         }
 
         return $arrValues;

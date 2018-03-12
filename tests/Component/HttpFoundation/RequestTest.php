@@ -8,10 +8,12 @@
 
 namespace HeimrichHannot\RequestBundle\Test\Component\HttpFoundation;
 
+use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\System;
 use Contao\TestCase\ContaoTestCase;
 use HeimrichHannot\RequestBundle\Component\HttpFoundation\Request;
 use HeimrichHannot\UtilsBundle\Container\ContainerUtil;
+use Symfony\Component\HttpFoundation\RequestMatcher;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class RequestTest extends ContaoTestCase
@@ -38,7 +40,12 @@ class RequestTest extends ContaoTestCase
         $requestStack = new RequestStack();
         $requestStack->push(new \Symfony\Component\HttpFoundation\Request());
 
-        $this->request = new Request($this->mockContaoFramework(), $requestStack);
+        $backendMatcher = new RequestMatcher('/contao', 'test.com', null, ['192.168.1.0']);
+        $frontendMatcher = new RequestMatcher('/index', 'test.com', null, ['192.168.1.0']);
+
+        $scopeMatcher = new ScopeMatcher($backendMatcher, $frontendMatcher);
+
+        $this->request = new Request($this->mockContaoFramework(), $requestStack, $scopeMatcher);
 
         $container = $this->mockContainer();
         $container->set('huh.utils.container', new ContainerUtil($this->mockContaoFramework()));
@@ -72,12 +79,10 @@ class RequestTest extends ContaoTestCase
         $this->assertSame([], $result);
 
         $_GET = ['id' => 12];
-        $_POST = ['id' => 12];
 
         $result = $this->request;
         $this->assertInstanceOf(\Symfony\Component\HttpFoundation\Request::class, $result);
         $this->assertSame(12, $result->query->get('id'));
-        $this->assertSame(12, $result->request->get('id'));
     }
 
     public function testSetGet()
@@ -150,12 +155,9 @@ class RequestTest extends ContaoTestCase
 
     public function testGetAllPost()
     {
-        $_POST = ['test' => ['id' => '12']];
+        $this->request->request->add(['test' => ['id' => '12']]);
 
         $result = $this->request->getAllPost();
-        $this->assertSame(['test' => ['id' => '12']], $result);
-
-        $result = $this->request->getAllPostHtml();
         $this->assertSame(['test' => ['id' => '12']], $result);
 
         $result = $this->request->getAllPostRaw();
@@ -170,5 +172,72 @@ class RequestTest extends ContaoTestCase
         $uuid = \Contao\StringUtil::uuidToBin('9c6697cf-c874-11e7-8bb3-a08cfddc0261');
         $result = $this->request->xssClean(['<script>alert(\'xss\')</script>', $uuid]);
         $this->assertSame(['<script>alert(\'xss\')</script>', $uuid], $result);
+    }
+
+    public function testFrontendInsertTagEncoding()
+    {
+        $request = new \Symfony\Component\HttpFoundation\Request();
+        $request->attributes->set('_scope', 'frontend');
+        $request->query->add(['test' => '{{email::test@test.com}}']);
+        $request->request->add(['test' => '{{email::test@test.com}}']);
+
+        $requestStack = new RequestStack();
+        $requestStack->push($request);
+
+        $backendMatcher = new RequestMatcher(null, null, null, null, ['_scope' => 'backend']);
+        $frontendMatcher = new RequestMatcher(null, null, null, null, ['_scope' => 'frontend']);
+
+        $scopeMatcher = new ScopeMatcher($backendMatcher, $frontendMatcher);
+
+        $this->request = new Request($this->mockContaoFramework(), $requestStack, $scopeMatcher);
+
+        $this->assertSame('&#123;&#123;email::test@test.com&#125;&#125;', $this->request->getGet('test'));
+        $this->assertSame('&#123;&#123;email::test@test.com&#125;&#125;', $this->request->getPost('test'));
+    }
+
+    public function testBackendInsertTagEncoding()
+    {
+        $request = new \Symfony\Component\HttpFoundation\Request();
+        $request->attributes->set('_scope', 'backend');
+        $request->query->add(['test' => '{{email::test@test.com}}']);
+        $request->request->add(['test' => '{{email::test@test.com}}']);
+
+        $requestStack = new RequestStack();
+        $requestStack->push($request);
+
+        $backendMatcher = new RequestMatcher(null, null, null, null, ['_scope' => 'backend']);
+        $frontendMatcher = new RequestMatcher(null, null, null, null, ['_scope' => 'frontend']);
+
+        $scopeMatcher = new ScopeMatcher($backendMatcher, $frontendMatcher);
+
+        $this->request = new Request($this->mockContaoFramework(), $requestStack, $scopeMatcher);
+
+        $this->assertSame('&#123;&#123;email::test@test.com&#125;&#125;', $this->request->getGet('test'));
+        $this->assertSame('{{email::test@test.com}}', $this->request->getPost('test'));
+    }
+
+    public function getUnusedGet()
+    {
+        $request = new \Symfony\Component\HttpFoundation\Request();
+        $request->attributes->set('_scope', 'frontend');
+        $request->query->add(['test' => 1234]);
+
+        $requestStack = new RequestStack();
+        $requestStack->push($request);
+
+        $backendMatcher = new RequestMatcher(null, null, null, null, ['_scope' => 'backend']);
+        $frontendMatcher = new RequestMatcher(null, null, null, null, ['_scope' => 'frontend']);
+
+        $scopeMatcher = new ScopeMatcher($backendMatcher, $frontendMatcher);
+
+        $this->request = new Request($this->mockContaoFramework(), $requestStack, $scopeMatcher);
+
+        $this->assertSame(1234, $this->request->getGet('test'));
+
+        $_GET['auto_item'] = 'foo';
+
+        $this->assertSame('foo', $this->request->getGet('auto_item'));
+        $this->assertSame('foo', $this->request->query->get('auto_item'));
+        $this->assertSame(['test' => 1234, 'auto_item' => 'foo'], $this->request->query->all());
     }
 }

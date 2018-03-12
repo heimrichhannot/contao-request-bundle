@@ -8,8 +8,10 @@
 
 namespace HeimrichHannot\RequestBundle\Test\Component\HttpFoundation;
 
+use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\TestCase\ContaoTestCase;
 use HeimrichHannot\RequestBundle\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestMatcher;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class PostTest extends ContaoTestCase
@@ -30,7 +32,12 @@ class PostTest extends ContaoTestCase
         $requestStack = new RequestStack();
         $requestStack->push(new \Symfony\Component\HttpFoundation\Request());
 
-        $this->request = new Request($this->mockContaoFramework(), $requestStack);
+        $backendMatcher = new RequestMatcher('/contao');
+        $frontendMatcher = new RequestMatcher('/index');
+
+        $scopeMatcher = new ScopeMatcher($backendMatcher, $frontendMatcher);
+
+        $this->request = new Request($this->mockContaoFramework(), $requestStack, $scopeMatcher);
 
         // reset request parameter bag
         $this->request->setRequest(new \Symfony\Component\HttpFoundation\Request());

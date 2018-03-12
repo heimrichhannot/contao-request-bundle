@@ -10,3 +10,4 @@ services:
     arguments:
       - '@contao.framework'
       - '@request_stack'
+      - '@contao.routing.scope_matcher'

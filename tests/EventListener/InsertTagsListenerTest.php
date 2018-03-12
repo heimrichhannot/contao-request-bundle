@@ -8,10 +8,12 @@
 
 namespace HeimrichHannot\RequestBundle\Test\EventListener;
 
+use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\System;
 use Contao\TestCase\ContaoTestCase;
 use HeimrichHannot\RequestBundle\Component\HttpFoundation\Request;
 use HeimrichHannot\RequestBundle\EventListener\InsertTagsListener;
+use Symfony\Component\HttpFoundation\RequestMatcher;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class InsertTagsListenerTest extends ContaoTestCase
@@ -28,7 +30,12 @@ class InsertTagsListenerTest extends ContaoTestCase
         $requestStack = new RequestStack();
         $requestStack->push(new \Symfony\Component\HttpFoundation\Request());
 
-        $container->set('huh.request', new Request($this->mockContaoFramework(), $requestStack));
+        $backendMatcher = new RequestMatcher('/contao');
+        $frontendMatcher = new RequestMatcher('/index');
+
+        $scopeMatcher = new ScopeMatcher($backendMatcher, $frontendMatcher);
+
+        $container->set('huh.request', new Request($this->mockContaoFramework(), $requestStack, $scopeMatcher));
         System::setContainer($container);
     }
 
