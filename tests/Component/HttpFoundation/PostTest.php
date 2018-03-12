@@ -6,7 +6,7 @@
  * @license LGPL-3.0-or-later
  */
 
-namespace HeimrichHannot\RequestBundle\Test\Request;
+namespace HeimrichHannot\RequestBundle\Test\Component\HttpFoundation;
 
 use Contao\TestCase\ContaoTestCase;
 use HeimrichHannot\RequestBundle\Component\HttpFoundation\Request;
