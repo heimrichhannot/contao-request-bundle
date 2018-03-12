@@ -54,5 +54,8 @@
   },
   "extra": {
     "contao-manager-plugin": "HeimrichHannot\\RequestBundle\\ContaoManager\\Plugin"
+  },
+  "replace": {
+    "heimrichhannot/contao-request":"*"
   }
 }
