@@ -12,7 +12,6 @@ use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\System;
 use Contao\TestCase\ContaoTestCase;
 use HeimrichHannot\RequestBundle\Component\HttpFoundation\Request;
-use HeimrichHannot\UtilsBundle\Container\ContainerUtil;
 use Symfony\Component\HttpFoundation\RequestMatcher;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -48,8 +47,6 @@ class RequestTest extends ContaoTestCase
         $this->request = new Request($this->mockContaoFramework(), $requestStack, $scopeMatcher);
 
         $container = $this->mockContainer();
-        $container->set('huh.utils.container', new ContainerUtil($this->mockContaoFramework()));
-
         // request stack
         $request = new \Symfony\Component\HttpFoundation\Request();
         $requestStack = new RequestStack();
@@ -158,6 +155,9 @@ class RequestTest extends ContaoTestCase
         $this->request->request->add(['test' => ['id' => '12']]);
 
         $result = $this->request->getAllPost();
+        $this->assertSame(['test' => ['id' => '12']], $result);
+
+        $result = $this->request->getAllPostHtml();
         $this->assertSame(['test' => ['id' => '12']], $result);
 
         $result = $this->request->getAllPostRaw();

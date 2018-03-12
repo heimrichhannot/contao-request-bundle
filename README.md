@@ -18,9 +18,9 @@ Use the following alternatives for contao `Input` or `Environment` calls
 Contao | Request
 ---- | -----------
 `\Input::get($strKey)` | `\Contao\System->getContainer->get('huh.request')->getGet($strKey)`
-`\Input::post($strKey)` | `\Contao\System->getContainer->get('huh.request')->:getPost($strKey)`
+`\Input::post($strKey)` | `\Contao\System->getContainer->get('huh.request')->getPost($strKey)`
 `\Input::postHtml($strKey)` | `\Contao\System->getContainer->get('huh.request')->getPostHtml($strKey)`
-`\Input::postRaw($strKey)` | `\Contao\System->getContainer->get('huh.request')->:getPostRaw($strKey)`
+`\Input::postRaw($strKey)` | `\Contao\System->getContainer->get('huh.request')->getPostRaw($strKey)`
 `\Input::setPost($strKey, $varValue)` | `\Contao\System->getContainer->get('huh.request')->setPost($strKey, $varValue)`
 `\Input::setGet($strKey, $varValue)` | `\Contao\System->getContainer->get('huh.request')->setGet($strKey, $varValue)`
 `isset($_GET[$strKey])` | `\Contao\System->getContainer->get('huh.request')->hasGet($strKey)`
@@ -32,7 +32,7 @@ Contao | Request
 
 For convenience we provide insert tags for some request method parameters.
 
-**CAUTION: If you use the insert tags in SQL-Query Context, be sure that you escape the insert tag values by using e.g. `prepare('field=?'')->execute('{{request_get::auto_item}}'')` **
+**CAUTION: If you use the insert tags in SQL-Query Context, be sure that you escape the insert tag values by using e.g. `prepare('field=?')->execute('{{request_get::auto_item}}')`**
 
 
 Insert tag | Description
