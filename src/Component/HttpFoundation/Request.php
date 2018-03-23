@@ -47,6 +47,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
         $this->framework = $framework;
         $this->scopeMatcher = $scopeMatcher;
 
+        $request = $requestStack->getCurrentRequest();
         parent::__construct($request->query ? $request->query->all() : [], $request->request ? $request->request->all() : [], $request->attributes ? $request->attributes->all() : [], $request->cookies ? $request->cookies->all() : [], $request->files ? $request->files->all() : [], $request->server ? $request->server->all() : [], $request ? $request->getContent() : null);
 
         // As long as contao adds unused parameters to $_GET and $_POST Globals inside \Contao\Input, we have to add them inside custom ParameterBag classes
