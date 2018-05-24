@@ -14,6 +14,7 @@ use Contao\Input;
 use Contao\StringUtil;
 use Contao\Validator;
 use Symfony\Component\CssSelector\Exception\SyntaxErrorException;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Wa72\HtmlPageDom\HtmlPageCrawler;
 
@@ -48,7 +49,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
         $this->scopeMatcher = $scopeMatcher;
 
         $request = $requestStack->getCurrentRequest();
-        parent::__construct($request->query ? $request->query->all() : [], $request->request ? $request->request->all() : [], $request->attributes ? $request->attributes->all() : [], $request->cookies ? $request->cookies->all() : [], $request->files ? $request->files->all() : [], $request->server ? $request->server->all() : [], $request ? $request->getContent() : null);
+        parent::__construct($this->checkCurrentRequest($request->query), $this->checkCurrentRequest($request->request), $this->checkCurrentRequest($request->attributes), $this->checkCurrentRequest($request->cookies), $this->checkCurrentRequest($request->files), $this->checkCurrentRequest($request->server), $request ? $request->getContent() : null);
 
         // As long as contao adds unused parameters to $_GET and $_POST Globals inside \Contao\Input, we have to add them inside custom ParameterBag classes
         $this->query = new QueryParameterBag($request->query ? $request->query->all() : []);
@@ -593,5 +594,27 @@ class Request extends \Symfony\Component\HttpFoundation\Request
     public function hasPost(string $key): bool
     {
         return $this->request->has($key);
+    }
+
+    /**
+     * @param $request
+     *
+     * @return array
+     */
+    protected function checkCurrentRequest($request)
+    {
+        if (null === $request || !$request instanceof ParameterBag) {
+            return [];
+        }
+
+        $parameters = $request->all();
+
+        foreach ($parameters as $i => $parameter) {
+            if (null === $parameter) {
+                unset($parameters[$i]);
+            }
+        }
+
+        return $parameters;
     }
 }

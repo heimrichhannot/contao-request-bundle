@@ -12,6 +12,7 @@ use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\System;
 use Contao\TestCase\ContaoTestCase;
 use HeimrichHannot\RequestBundle\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\RequestMatcher;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -239,5 +240,23 @@ class RequestTest extends ContaoTestCase
         $this->assertSame('foo', $this->request->getGet('auto_item'));
         $this->assertSame('foo', $this->request->query->get('auto_item'));
         $this->assertSame(['test' => 1234, 'auto_item' => 'foo'], $this->request->query->all());
+    }
+
+    public function testCheckCurrentRequest()
+    {
+        $request = $this->getMockBuilder(Request::class)->setMethods(null)->disableOriginalConstructor()->getMock();
+
+        $reflectionClass = new \ReflectionClass(Request::class);
+
+        $testMethod = $reflectionClass->getMethod('checkCurrentRequest');
+        $testMethod->setAccessible(true);
+
+        $this->assertSame([], $testMethod->invokeArgs($request, [null]));
+
+        $parameterBag = new ParameterBag();
+        $parameterBag->set('name', null);
+        $result = $testMethod->invokeArgs($request, [$parameterBag]);
+
+        $this->assertSame([], $result);
     }
 }

@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.4] - 2018-05-24
+
+### Fixed
+- check if current request parameters are null
+
 ## [1.0.3] - 2018-03-23
 
 ### Fixed
