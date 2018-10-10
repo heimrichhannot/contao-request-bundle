@@ -17,15 +17,15 @@ Use the following alternatives for contao `Input` or `Environment` calls
 
 Contao | Request
 ---- | -----------
-`\Input::get($strKey)` | `\Contao\System->getContainer->get('huh.request')->getGet($strKey)`
-`\Input::post($strKey)` | `\Contao\System->getContainer->get('huh.request')->getPost($strKey)`
-`\Input::postHtml($strKey)` | `\Contao\System->getContainer->get('huh.request')->getPostHtml($strKey)`
-`\Input::postRaw($strKey)` | `\Contao\System->getContainer->get('huh.request')->getPostRaw($strKey)`
-`\Input::setPost($strKey, $varValue)` | `\Contao\System->getContainer->get('huh.request')->setPost($strKey, $varValue)`
-`\Input::setGet($strKey, $varValue)` | `\Contao\System->getContainer->get('huh.request')->setGet($strKey, $varValue)`
-`isset($_GET[$strKey])` | `\Contao\System->getContainer->get('huh.request')->hasGet($strKey)`
-`isset($_POST[$strKey])` | `\Contao\System->getContainer->get('huh.request')->hasPost($strKey)`
-`\Environment::get('isAjaxRequest')` | `\Contao\System->getContainer->get('huh.request')->isXmlHttpRequest()`
+`\Input::get($strKey)` | `\Contao\System->getContainer()->get('huh.request')->getGet($strKey)`
+`\Input::post($strKey)` | `\Contao\System->getContainer()->get('huh.request')->getPost($strKey)`
+`\Input::postHtml($strKey)` | `\Contao\System->getContainer()->get('huh.request')->getPostHtml($strKey)`
+`\Input::postRaw($strKey)` | `\Contao\System->getContainer()->get('huh.request')->getPostRaw($strKey)`
+`\Input::setPost($strKey, $varValue)` | `\Contao\System->getContainer()->get('huh.request')->setPost($strKey, $varValue)`
+`\Input::setGet($strKey, $varValue)` | `\Contao\System->getContainer()->get('huh.request')->setGet($strKey, $varValue)`
+`isset($_GET[$strKey])` | `\Contao\System->getContainer()->get('huh.request')->hasGet($strKey)`
+`isset($_POST[$strKey])` | `\Contao\System->getContainer()->get('huh.request')->hasPost($strKey)`
+`\Environment::get('isAjaxRequest')` | `\Contao\System->getContainer()->get('huh.request')->isXmlHttpRequest()`
 
 
 ## Insert tags
