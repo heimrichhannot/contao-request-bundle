@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.6] - 2018-10-23
+
+### Fixed
+- composer dependencies for contao 4.6
+
 ## [1.0.5] - 2018-10-10
 
 ### Fixed
