@@ -25,8 +25,8 @@ class PostTest extends ContaoTestCase
     {
         parent::setUp();
 
-        if (!defined('TL_MODE')) {
-            define('TL_MODE', 'FE');
+        if (!\defined('TL_MODE')) {
+            \define('TL_MODE', 'FE');
         }
 
         $requestStack = new RequestStack();

@@ -10,7 +10,7 @@ namespace HeimrichHannot\RequestBundle\Component\HttpFoundation;
 
 use Symfony\Component\HttpFoundation\ParameterBag;
 
-class QueryParameterBag extends \Symfony\Component\HttpFoundation\ParameterBag
+class QueryParameterBag extends ParameterBag
 {
     /**
      * @var ParameterBag

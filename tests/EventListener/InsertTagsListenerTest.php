@@ -22,8 +22,8 @@ class InsertTagsListenerTest extends ContaoTestCase
     {
         parent::setUp();
 
-        if (!defined('TL_MODE')) {
-            define('TL_MODE', 'FE');
+        if (!\defined('TL_MODE')) {
+            \define('TL_MODE', 'FE');
         }
 
         $container = $this->mockContainer();

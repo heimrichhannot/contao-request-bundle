@@ -153,7 +153,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
             return $value;
         }
 
-        if (is_array($value)) {
+        if (\is_array($value)) {
             foreach ($value as $i => $childValue) {
                 $value[$i] = $this->clean($childValue, $decodeEntities, $encodeInsertTags, $tidy, $strictMode);
             }
@@ -206,7 +206,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
             return $value;
         }
 
-        if (is_array($value)) {
+        if (\is_array($value)) {
             foreach ($value as $i => $childValue) {
                 $value[$i] = $this->cleanHtml($childValue, $decodeEntities, $encodeInsertTags, $allowedTags, $tidy, $strictMode);
             }
@@ -257,7 +257,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
             return $value;
         }
 
-        if (is_array($value)) {
+        if (\is_array($value)) {
             foreach ($value as $i => $childValue) {
                 $value[$i] = $this->cleanRaw($childValue, $encodeInsertTags, $tidy, $strictMode);
             }
@@ -439,7 +439,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      */
     public function xssClean($varValue, bool $strictMode = false)
     {
-        if (is_array($varValue)) {
+        if (\is_array($varValue)) {
             foreach ($varValue as $key => $value) {
                 $varValue[$key] = $this->xssClean($value, $strictMode);
             }
@@ -525,7 +525,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
                         return $node;
                     }
 
-                    if (!in_array($node->getNode(0)->tagName, $arrAllowedTags, true)) {
+                    if (!\in_array($node->getNode(0)->tagName, $arrAllowedTags, true)) {
                         $strHTML = $node->saveHTML();
                         $strHTML = str_replace(['<', '>'], ['[[xlt]]', '[[xgt]]'], $strHTML);
 
