@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.7] - 2019-02-20
+
+### Fixed
+- Added class alias for `@huh.request` service to fix symfony 4 compatibility
+
 ## [1.0.6] - 2018-10-23
 
 ### Fixed
