@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.8] - 2019-02-22
+
+### Fixed 
+- typo in path to service yaml
+
 ## [1.0.7] - 2019-02-20
 
 ### Changed
