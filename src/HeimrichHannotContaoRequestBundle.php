@@ -13,11 +13,4 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class HeimrichHannotContaoRequestBundle extends Bundle
 {
-    /**
-     * @return RequestExtension
-     */
-    public function getContainerExtension()
-    {
-        return new RequestExtension();
-    }
 }

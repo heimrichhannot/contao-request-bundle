@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file.
 
 ## [1.0.7] - 2019-02-20
 
+### Changed
+- moved service config loading to Plugin class
+
 ### Fixed
 - Added class alias for `@huh.request` service to fix symfony 4 compatibility
 
