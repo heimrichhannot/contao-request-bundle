@@ -33,6 +33,6 @@ class Plugin implements BundlePluginInterface, ConfigPluginInterface
      */
     public function registerContainerConfiguration(LoaderInterface $loader, array $managerConfig)
     {
-        $loader->load('@HeimrichHannotContaoRequestBundle/Ressources/config/services.yml');
+        $loader->load('@HeimrichHannotContaoRequestBundle/Resources/config/services.yml');
     }
 }
