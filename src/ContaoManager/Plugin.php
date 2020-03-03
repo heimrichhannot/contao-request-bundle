@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2019 Heimrich & Hannot GmbH
+ * Copyright (c) 2020 Heimrich & Hannot GmbH
  *
  * @license LGPL-3.0-or-later
  */
@@ -27,8 +27,10 @@ class Plugin implements BundlePluginInterface, ConfigPluginInterface
 
     /**
      * Allows a plugin to load container configuration.
+     *
      * @param LoaderInterface $loader
-     * @param array $managerConfig
+     * @param array           $managerConfig
+     *
      * @throws \Exception
      */
     public function registerContainerConfiguration(LoaderInterface $loader, array $managerConfig)

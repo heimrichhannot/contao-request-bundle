@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2019 Heimrich & Hannot GmbH
+ * Copyright (c) 2020 Heimrich & Hannot GmbH
  *
  * @license LGPL-3.0-or-later
  */
@@ -49,10 +49,23 @@ class Request extends \Symfony\Component\HttpFoundation\Request
         $this->scopeMatcher = $scopeMatcher;
 
         $request = $requestStack->getCurrentRequest();
-        parent::__construct($this->checkCurrentRequest($request->query), $this->checkCurrentRequest($request->request), $this->checkCurrentRequest($request->attributes), $this->checkCurrentRequest($request->cookies), $this->checkCurrentRequest($request->files), $this->checkCurrentRequest($request->server), $request ? $request->getContent() : null);
+
+        if (null === $request) {
+            parent::__construct([], [], [], [], [], [], null);
+        } else {
+            parent::__construct(
+                $this->checkCurrentRequest($request->query),
+                $this->checkCurrentRequest($request->request),
+                $this->checkCurrentRequest($request->attributes),
+                $this->checkCurrentRequest($request->cookies),
+                $this->checkCurrentRequest($request->files),
+                $this->checkCurrentRequest($request->server),
+                $request->getContent()
+            );
+        }
 
         // As long as contao adds unused parameters to $_GET and $_POST Globals inside \Contao\Input, we have to add them inside custom ParameterBag classes
-        $this->query = new QueryParameterBag($request->query ? $request->query->all() : []);
+        $this->query = new QueryParameterBag($request && $request->query ? $request->query->all() : []);
     }
 
     /**
@@ -305,7 +318,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param bool   $tidy           If true, varValue is tidied up
      * @param bool   $strictMode     If true, the xss cleaner removes also JavaScript event handlers
      *
-     * @return null|mixed If no $strKey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
+     * @return mixed|null If no $strKey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
      */
     public function getPost(string $key, bool $decodeEntities = false, bool $tidy = true, bool $strictMode = true)
     {
@@ -350,7 +363,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param bool   $tidy           If true, varValue is tidied up
      * @param bool   $strictMode     If true, the xss cleaner removes also JavaScript event handlers
      *
-     * @return null|mixed If no $strKey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
+     * @return mixed|null If no $strKey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
      */
     public function getPostHtml(string $key, bool $decodeEntities = false, string $allowedTags = '', bool $tidy = true, bool $strictMode = true)
     {
@@ -394,7 +407,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param bool   $tidy       If true, varValue is tidied up
      * @param bool   $strictMode If true, the xss cleaner removes also JavaScript event handlers
      *
-     * @return null|mixed If no $strkey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
+     * @return mixed|null If no $strkey is defined, return all cleaned query parameters, otherwise the cleaned requested query value
      */
     public function getPostRaw(string $key, bool $tidy = false, bool $strictMode = false)
     {

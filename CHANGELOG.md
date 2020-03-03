@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.9] - 2020-03-03
+
+### Fixed
+- bundle for command line calls (null-checks for the request object)
+
 ## [1.0.8] - 2019-02-22
 
 ### Fixed 
