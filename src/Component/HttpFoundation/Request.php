@@ -39,9 +39,6 @@ class Request extends \Symfony\Component\HttpFoundation\Request
 
     /**
      * Request constructor.
-     *
-     * @param ContaoFrameworkInterface $framework
-     * @param RequestStack             $requestStack
      */
     public function __construct(ContaoFrameworkInterface $framework, RequestStack $requestStack, ScopeMatcher $scopeMatcher)
     {
@@ -70,8 +67,6 @@ class Request extends \Symfony\Component\HttpFoundation\Request
 
     /**
      * For test purposes use \Symfony\Component\HttpFoundation\Request::create() for dummy data.
-     *
-     * @param \Symfony\Component\HttpFoundation\Request $request
      *
      * @return \Symfony\Component\HttpFoundation\Request
      */
@@ -382,8 +377,6 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param string $allowedTags    List of allowed html tags
      * @param bool   $tidy           If true, varValue is tidied up
      * @param bool   $strictMode     If true, the xss cleaner removes also JavaScript event handlers
-     *
-     * @return array
      */
     public function getAllPostHtml(bool $decodeEntities = false, string $allowedTags = '', bool $tidy = true, bool $strictMode = true): array
     {
@@ -424,8 +417,6 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param string $strKey     The requested field
      * @param bool   $tidy       If true, varValue is tidied up
      * @param bool   $strictMode If true, the xss cleaner removes also JavaScript event handlers
-     *
-     * @return array
      */
     public function getAllPostRaw(bool $tidy = false, bool $strictMode = false): array
     {
@@ -465,7 +456,10 @@ class Request extends \Symfony\Component\HttpFoundation\Request
             return $varValue;
         }
 
-        $varValue = StringUtil::decodeEntities($varValue);
+        // Fix issue StringUtils::decodeEntites() returning empty string when value is 0 in some contao 4.9 versions
+        if ('0' !== $varValue && 0 !== $varValue) {
+            $varValue = StringUtil::decodeEntities($varValue);
+        }
 
         $varValue = preg_replace('/(&#[A-Za-z0-9]+);?/i', '$1;', $varValue);
 
