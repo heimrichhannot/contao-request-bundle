@@ -216,7 +216,7 @@ class PostTest extends ContaoTestCase
                 '<br /> <br> <br/> <br/ >',
                 '<br>',
                 true,
-                '<br><br><br><br>',
+                '<br> <br> <br> <br>',
             ],
             [
                 '<p title="test> 5"> <p title="test > 5"> <p title="test <p> 5">',
