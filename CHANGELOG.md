@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2021-03-10
+- allow php 8
+
 ## [1.1.1] - 2020-12-04
 - fixed wrong return values from xssClean methode due issue in core bundle ([#2468](https://github.com/contao/contao/issues/2468))
 
