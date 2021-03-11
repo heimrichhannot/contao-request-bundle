@@ -9,7 +9,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ 7.1, 7.2., 7.3, 7.4, 8.0 ]
+        php: [ 7.1, 7.2., 7.3, 7.4 ]
+        contao: [ 4.4.*, 4.9.*, 4.*]
+        include:
+          - php: 8.0
+            contao: 4.9.*
+            experimental: true
     steps:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -23,15 +28,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install the dependencies
-        if: ${{ matrix.php != 8.0 }}
         id: composer-install
-        run: composer install --no-interaction
-
-      - name: Install the dependencies
-        if: ${{ matrix.php == 8.0 }}
-        id: composer-install
-        run: composer install --no-interaction
-        continue-on-error: true
+        run: composer require ${{ matrix.contao }} --no-interaction
+        continue-on-error: ${{ matrix.experimental == true }}
 
       - name: Run the unit tests
         if: steps.composer-install == 'success' && steps.composer-install.conclusion == 'success'
