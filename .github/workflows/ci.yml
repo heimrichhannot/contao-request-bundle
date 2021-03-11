@@ -23,15 +23,18 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install the dependencies
+        if: ${{ matrix.php != 8.0 }}
+        id: composer-install
         run: composer install --no-interaction
 
-      - name: Run the unit tests
+      - name: Install the dependencies
         if: ${{ matrix.php == 8.0 }}
-        run: php vendor/bin/phpunit -c phpunit.xml.dist --colors=always
+        id: composer-install
+        run: composer install --no-interaction
         continue-on-error: true
 
       - name: Run the unit tests
-        if: ${{ matrix.php != 8.0 }}
+        if: steps.composer-install == 'success' && steps.composer-install.conclusion == 'success'
         run: php vendor/bin/phpunit -c phpunit.xml.dist --colors=always
 
   coverage:

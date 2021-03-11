@@ -1,5 +1,5 @@
 
-![](https://img.shields.io/packagist/v/heimrichhannot/contao-request-bundle.svg)
+[![](https://img.shields.io/packagist/v/heimrichhannot/contao-request-bundle.svg)](https://packagist.org/packages/heimrichhannot/contao-request-bundle)
 ![](https://img.shields.io/packagist/l/heimrichhannot/contao-request-bundle.svg)
 ![](https://img.shields.io/packagist/dt/heimrichhannot/contao-request-bundle.svg)
 [![](https://img.shields.io/travis/heimrichhannot/contao-request-bundle/master.svg)](https://travis-ci.org/heimrichhannot/contao-request-bundle/)
