@@ -11,7 +11,6 @@ jobs:
       matrix:
         php: [ 7.2., 7.3, 7.4 ]
         contao: [ 4.4.*, 4.9.*, 4.*]
-        experimental: false
         include:
           - php: 7.1
             contao: 4.4.*
