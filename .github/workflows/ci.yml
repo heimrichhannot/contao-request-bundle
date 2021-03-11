@@ -29,7 +29,7 @@ jobs:
 
       - name: Install the dependencies
         id: composer-install
-        run: composer require ${{ matrix.contao }} --no-interaction
+        run: composer require contao/core-bundle:${{ matrix.contao }} --no-interaction
         continue-on-error: ${{ matrix.experimental == true }}
 
       - name: Run the unit tests
