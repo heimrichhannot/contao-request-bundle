@@ -1,9 +1,10 @@
 
-[![](https://img.shields.io/packagist/v/heimrichhannot/contao-request-bundle.svg)](https://packagist.org/packages/heimrichhannot/contao-request-bundle)
-[![](https://img.shields.io/packagist/l/heimrichhannot/contao-request-bundle.svg)](https://packagist.org/packages/heimrichhannot/contao-request-bundle)
-[![](https://img.shields.io/packagist/dt/heimrichhannot/contao-request-bundle.svg)](https://packagist.org/packages/heimrichhannot/contao-request-bundle)
-[![CI](https://github.com/heimrichhannot/contao-request-bundle/actions/workflows/ci.yml/badge.svg)](https://github.com/heimrichhannot/contao-request-bundle/actions/workflows/ci.yml)
-[![Coverage Status](https://coveralls.io/repos/github/heimrichhannot/contao-request-bundle/badge.svg?branch=master)](https://coveralls.io/github/heimrichhannot/contao-request-bundle?branch=master)
+![](https://img.shields.io/packagist/v/heimrichhannot/contao-request-bundle.svg)
+![](https://img.shields.io/packagist/l/heimrichhannot/contao-request-bundle.svg)
+![](https://img.shields.io/packagist/dt/heimrichhannot/contao-request-bundle.svg)
+[![](https://img.shields.io/travis/heimrichhannot/contao-request-bundle/master.svg)](https://travis-ci.org/heimrichhannot/contao-request-bundle/)
+[![](https://img.shields.io/coveralls/heimrichhannot/contao-request-bundle/master.svg)](https://coveralls.io/github/heimrichhannot/contao-request-bundle)
+
 # Request Bundle
 
 Contao uses it own `Input` class, that check the request for $_GET, $_POST and more parameters.

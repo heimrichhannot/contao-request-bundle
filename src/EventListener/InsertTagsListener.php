@@ -47,6 +47,7 @@ class InsertTagsListener
         switch ($insertTag) {
             case 'request_get':
                 return System::getContainer()->get('huh.request')->getGet($key);
+
             case 'request_post':
                 return System::getContainer()->get('huh.request')->getPost($key);
         }
