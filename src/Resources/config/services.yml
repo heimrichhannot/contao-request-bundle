@@ -1,14 +1,16 @@
 services:
+  _defaults:
+    public: true
+
   huh.request.insertTagsListener:
     class: HeimrichHannot\RequestBundle\EventListener\InsertTagsListener
-    public: true
     arguments:
       - '@contao.framework'
-  huh.request:
-    class: HeimrichHannot\RequestBundle\Component\HttpFoundation\Request
-    public: true
+
+  HeimrichHannot\RequestBundle\Component\HttpFoundation\Request:
     arguments:
       - '@contao.framework'
       - '@request_stack'
       - '@contao.routing.scope_matcher'
-  HeimrichHannot\RequestBundle\Component\HttpFoundation\Request: "@huh.request"
+
+  huh.request: '@HeimrichHannot\RequestBundle\Component\HttpFoundation\Request'

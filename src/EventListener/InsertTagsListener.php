@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2020 Heimrich & Hannot GmbH
+ * Copyright (c) 2021 Heimrich & Hannot GmbH
  *
  * @license LGPL-3.0-or-later
  */
@@ -23,8 +23,6 @@ class InsertTagsListener
     /**
      * Replaces request insert tags.
      *
-     * @param string $tag
-     *
      * @return string|false
      */
     public function onReplaceInsertTags(string $tag)
@@ -41,9 +39,6 @@ class InsertTagsListener
 
     /**
      * Replaces a request-related insert tag.
-     *
-     * @param string $insertTag
-     * @param string $key
      *
      * @return string
      */
