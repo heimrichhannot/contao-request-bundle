@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2021-07-30
+- Changed: allow symfony 5
+
 ## [1.2.1] - 2021-04-16
 
 - fixed for contao 4.9
