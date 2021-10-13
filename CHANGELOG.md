@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.1] - 2021-10-13
+- Fixed: symfony 5 support with allowing wa72/htmlpagedom ^2.0
+
 ## [1.3.0] - 2021-07-30
 - Changed: allow symfony 5
 
