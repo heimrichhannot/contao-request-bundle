@@ -5,6 +5,8 @@
 [![](https://img.shields.io/travis/heimrichhannot/contao-request-bundle/master.svg)](https://travis-ci.org/heimrichhannot/contao-request-bundle/)
 [![](https://img.shields.io/coveralls/heimrichhannot/contao-request-bundle/master.svg)](https://coveralls.io/github/heimrichhannot/contao-request-bundle)
 
+> This bundle is deprecated and not maintained activilty anymore!
+
 # Request Bundle
 
 Contao uses it own `Input` class, that check the request for $_GET, $_POST and more parameters.
