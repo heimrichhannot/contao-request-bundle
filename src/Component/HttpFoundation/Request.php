@@ -8,17 +8,18 @@
 
 namespace HeimrichHannot\RequestBundle\Component\HttpFoundation;
 
-use Contao\CoreBundle\Framework\ContaoFrameworkInterface;
+use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\Input;
 use Contao\StringUtil;
 use Contao\Validator;
 use Symfony\Component\CssSelector\Exception\SyntaxErrorException;
 use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Wa72\HtmlPageDom\HtmlPageCrawler;
 
-class Request extends \Symfony\Component\HttpFoundation\Request
+class Request extends SymfonyRequest
 {
     /**
      * Query string parameters ($_GET).
@@ -28,23 +29,14 @@ class Request extends \Symfony\Component\HttpFoundation\Request
     public $query;
 
     /**
-     * @var ContaoFrameworkInterface
-     */
-    protected $framework;
-
-    /**
-     * @var ScopeMatcher
-     */
-    protected $scopeMatcher;
-
-    /**
      * Request constructor.
      */
-    public function __construct(ContaoFrameworkInterface $framework, RequestStack $requestStack, ScopeMatcher $scopeMatcher)
+    public function __construct(
+        protected ContaoFramework $framework,
+        RequestStack $requestStack,
+        protected ScopeMatcher $scopeMatcher
+    )
     {
-        $this->framework = $framework;
-        $this->scopeMatcher = $scopeMatcher;
-
         $request = $requestStack->getCurrentRequest();
 
         if (null === $request) {
@@ -68,9 +60,9 @@ class Request extends \Symfony\Component\HttpFoundation\Request
     /**
      * For test purposes use \Symfony\Component\HttpFoundation\Request::create() for dummy data.
      *
-     * @return \Symfony\Component\HttpFoundation\Request
+     * @return SymfonyRequest
      */
-    public function setRequest(\Symfony\Component\HttpFoundation\Request $request)
+    public function setRequest(SymfonyRequest $request): static
     {
         $this->initialize($request->query->all(), $request->request->all(), $request->attributes->all(), $request->cookies->all(), $request->files->all(), $request->server->all(), $request->getContent());
 
@@ -86,7 +78,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param string $key   The requested field
      * @param mixed  $value The input value
      */
-    public function setGet(string $key, $value)
+    public function setGet(string $key, mixed $value): void
     {
         // Convert special characters (see #7829)
         $key = str_replace([' ', '.', '['], '_', $key);
@@ -106,7 +98,7 @@ class Request extends \Symfony\Component\HttpFoundation\Request
      * @param string $key   The requested field
      * @param mixed  $value The input value
      */
-    public function setPost(string $key, $value)
+    public function setPost(string $key, $value): void
     {
         $key = Input::cleanKey($key);
 
